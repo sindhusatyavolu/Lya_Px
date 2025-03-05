@@ -1,2 +1,2 @@
 # LyaPx
-Code to measure Cross Power Spectrum of the Lyman Alpha Forest 
+Lyman alpha forest cross power spectrum estimator code 
