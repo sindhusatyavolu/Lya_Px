@@ -1,4 +1,5 @@
 import numpy as np
+from config import *
 
 def angular_separation(ra1, dec1, ra2, dec2): 
     # Calculate the difference in right ascension
