@@ -36,11 +36,16 @@ def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=False):
         j_min_data=round((wave_data[0]-wave_fft_grid[0])/pw_A)
         j_max_data=round((wave_data[-1]-wave_fft_grid[0])/pw_A)
         print(j_min_data,j_max_data)
-        
+
         # map the data deltas and weights into the FFT grid
         delta_fft_grid=np.zeros(N_fft)
         weight_fft_grid=np.zeros(N_fft)
         
+        # have to make sure FFT grid is larger than the data grid that falls within the redshift bin
+        if j_min_data < 0 and j_max_data >= N_fft:
+            print('Data grid is larger than FFT grid')
+            continue
+
         # figure out whether the spectrum is cut at low-z or at high-z
         loz_cut=False
         hiz_cut=False
