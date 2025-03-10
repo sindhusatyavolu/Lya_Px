@@ -7,6 +7,8 @@ from functions import *
 from px_from_pix import *
 import sys
 
+P1D = True
+
 # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
 wave_desi_N = 5000
 # I know for sure that there is a pixel at 3600A, so let's make sure we cover that one
@@ -64,6 +66,12 @@ file = fits.open(delta_file)
 # get sightlines from the delta file that fall within the fft grid
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 
+if P1D:
+    # compute P1D
+    p1d = get_p1d(skewers)
+    plt.plot(k[:N_fft//2],p1d[:N_fft//2])
+    plt.show()
+
 # compute separations
 separation_angles,skewer_pairs = get_separations(skewers)
 separation_angles = np.array(separation_angles)
@@ -72,8 +80,14 @@ print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_T
 print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
+
+skewer_pairs_thetabin = skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)]
+
+
+
 # compute the power spectrum for each separation
-get_px(skewers,separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
+
+get_px(skewer_pairs_thetabin,skewers)
 
 # save the results
 
