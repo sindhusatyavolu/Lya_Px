@@ -1,5 +1,6 @@
 import numpy as np
 from config import *
+from auxiliary import *
 
 def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=True):
     skewers=[]
