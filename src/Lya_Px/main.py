@@ -7,8 +7,6 @@ from functions import *
 from px_from_pix import *
 import sys
 
-P1D = True
-
 # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
 wave_desi_N = 5000
 # I know for sure that there is a pixel at 3600A, so let's make sure we cover that one
@@ -91,10 +89,15 @@ print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],ske
 skewer_pairs_thetabin = skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)]
 
 
-
 # compute the power spectrum for each separation
 
-get_px(skewer_pairs_thetabin,skewers)
+px = get_px(skewer_pairs_thetabin,skewers)
+plt.plot(k[:N_fft//2],px[:N_fft//2])
+plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+plt.xlabel('k [1/A]')
+plt.ylabel('Px [A]')
+plt.show()
+plt.savefig('px-%d.png'%(healpix))
 
 # save the results
 

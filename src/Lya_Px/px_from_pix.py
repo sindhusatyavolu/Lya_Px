@@ -2,6 +2,7 @@ import numpy as np
 
 def get_px(skewer_pair_indices,skewers):
     # loop over the pairs of skewers
+    px_ft = np.zeros(N_fft)
     for i,j in skewer_pair_indices:
         skewer1=skewers[i]
         skewer2=skewers[j]
@@ -18,6 +19,7 @@ def get_px(skewer_pair_indices,skewers):
         weighted_delta2_ft = np.fft.fft(weighted_delta2)
         
         # compute the products
+        px_ft += (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real       
  
-    return 0
+    return px_ft
 
