@@ -72,6 +72,6 @@ def get_separations(skewers):
         for j in range(i+1,len(skewers)):
             separation=angular_separation(skewers[i]['RA'],skewers[i]['Dec'],skewers[j]['RA'],skewers[j]['Dec'])
             separation_angles.append(separation)
-    return 0
+    return separation_angles
 
 

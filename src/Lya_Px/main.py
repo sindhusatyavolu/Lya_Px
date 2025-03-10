@@ -66,6 +66,7 @@ skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 
 # compute separations
 separation_angles = get_separations(skewers)
+print(separation_angles.min()*RAD_TO_ARCMIN,separation_angles.max()*RAD_TO_ARCMIN)
 
 # compute the power spectrum for each separation
 get_px(skewers,separation_angles)
