@@ -1,16 +1,6 @@
 import numpy as np
 from config import *
 
-def angular_separation(ra1, dec1, ra2, dec2): 
-    # Calculate the difference in right ascension
-    delta_ra = ra2 - ra1  # in radians
-    
-    # Apply the formula for angular separation
-    angular_distance = np.arccos(np.sin(dec1) * np.sin(dec2) +
-                                 np.cos(dec1) * np.cos(dec2) * np.cos(delta_ra))
-    
-    return angular_distance # in radians
-
 def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=False):
     skewers=[]
     for hdu in file[1:]:
@@ -75,5 +65,12 @@ def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=False):
     return skewers
 
 
-def get_separations(wave_fft_grid,mask_fft_grid):
+def get_separations(skewers):
+    separation_angles=[]
+    for i in range(len(skewers)):
+        for j in range(i+1,len(skewers)):
+            separation=angular_separation(skewers[i]['RA'],skewers[i]['Dec'],skewers[j]['RA'],skewers[j]['Dec'])
+            separation_angles.append(separation)
     return 0
+
+
