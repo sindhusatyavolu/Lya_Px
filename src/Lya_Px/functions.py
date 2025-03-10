@@ -1,7 +1,7 @@
 import numpy as np
 from config import *
 
-def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=False):
+def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=True):
     skewers=[]
     for hdu in file[1:]:
         if len(skewers)%100==0 and verbose:
@@ -61,7 +61,7 @@ def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=False):
         skewer['j_max_data']=j_max_data
         skewer['delta_fft_grid']=delta_fft_grid
         skewer['weight_fft_grid']=weight_fft_grid
-        skewers.append(skewer)
+        skewers.append(skewer)   
     return skewers
 
 
