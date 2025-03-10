@@ -15,7 +15,7 @@ wave_desi_max = wave_desi_min+wave_desi_N*pw_A
 print('{:.2f} < lambda < {:.2f} [A]'.format(wave_desi_min, wave_desi_max))
 print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LYA-1))
 wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
-
+print(len(wave_desi))
 
 if len(sys.argv) != 4:
     print("Usage: python main.py <redshift_bin> <redshift_bin_width> <healpix pixel>")
