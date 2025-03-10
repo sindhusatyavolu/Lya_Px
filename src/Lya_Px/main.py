@@ -67,6 +67,7 @@ skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 # compute separations
 separation_angles,skewer_pairs = get_separations(skewers)
 separation_angles = np.array(separation_angles)
+skewer_pairs = np.array(skewer_pairs)
 print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
 print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
