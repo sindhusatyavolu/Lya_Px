@@ -66,11 +66,13 @@ skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 
 # compute separations
 separation_angles = get_separations(skewers)
-separation_angles = np.array(separation_angles)
+separation_angles,skewer_pairs = np.array(separation_angles)
 print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
 print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
+print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
+print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 # compute the power spectrum for each separation
-get_px(skewers,separation_angles[separation_angles*RAD_TO_ARCMIN>6 and separation_angles*RAD_TO_ARCMIN<9])
+get_px(skewers,separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 
 # save the results
 

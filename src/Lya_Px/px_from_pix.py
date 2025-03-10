@@ -1,4 +1,5 @@
 import numpy as np
 
-def get_px(wave_fft_grid,mask_fft_grid):
+def get_px(skewers,angles):
+    
     return 0

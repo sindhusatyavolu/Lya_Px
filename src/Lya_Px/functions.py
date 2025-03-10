@@ -68,10 +68,12 @@ def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=True):
 
 def get_separations(skewers):
     separation_angles=[]
+    skewer_pairs=[]
     for i in range(len(skewers)):
         for j in range(i+1,len(skewers)):
             separation=angular_separation(skewers[i]['RA'],skewers[i]['Dec'],skewers[j]['RA'],skewers[j]['Dec'])
             separation_angles.append(separation)
-    return separation_angles
+            skewer_pairs.append((i,j))
+    return separation_angles,skewer_pairs
 
 
