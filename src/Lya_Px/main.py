@@ -71,7 +71,7 @@ if P1D:
     p1d = get_p1d(skewers)
     plt.plot(k[:N_fft//2],p1d[:N_fft//2])
     plt.show()
-    plt.savefig('p1d-%d.npy'%(healpix))
+    plt.savefig('p1d-%d.png'%(healpix))
 
 
 # compute separations
