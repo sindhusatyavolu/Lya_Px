@@ -15,7 +15,6 @@ wave_desi_max = wave_desi_min+wave_desi_N*pw_A
 print('{:.2f} < lambda < {:.2f} [A]'.format(wave_desi_min, wave_desi_max))
 print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LYA-1))
 wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
-print(len(wave_desi))
 
 if len(sys.argv) != 4:
     print("Usage: python main.py <redshift_bin> <redshift_bin_width> <healpix pixel>")
@@ -37,6 +36,10 @@ k = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
 # figure out the index of the global (desi) grid that is closer to the center of the redshift bin
 i_cen = round((lam_cen-wave_desi_min)/pw_A) 
 wave_fft_grid = wave_desi[i_cen-N_fft//2:i_cen+N_fft//2] 
+if len(wave_fft_grid) != N_fft:
+    print('Error: FFT grid does not have the expected number of pixels')
+    exit(1)
+     
 print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
 
 mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
