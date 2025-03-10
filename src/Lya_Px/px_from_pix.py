@@ -1,4 +1,6 @@
 import numpy as np
+from config import *
+from auxiliary import *
 
 def get_px(skewer_pair_indices,skewers):
     # loop over the pairs of skewers
