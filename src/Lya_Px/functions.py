@@ -78,6 +78,7 @@ def get_separations(skewers):
 
 
 def get_p1d(skewers):
+    p1d = np.zeros(N_fft)
     for skewer in skewers:
         delta = skewer['delta_fft_grid']
         weight = skewer['weight_fft_grid']

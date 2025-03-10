@@ -72,6 +72,7 @@ if P1D:
     plt.plot(k[:N_fft//2],p1d[:N_fft//2])
     plt.show()
 
+
 # compute separations
 separation_angles,skewer_pairs = get_separations(skewers)
 separation_angles = np.array(separation_angles)
