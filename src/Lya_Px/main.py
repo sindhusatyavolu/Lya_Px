@@ -69,7 +69,12 @@ skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 if P1D:
     # compute P1D
     p1d = get_p1d(skewers)
-    plt.plot(k[:N_fft//2],p1d[:N_fft//2])
+    N_skewers = len(skewers)
+    p1d_norm = pw_A/N_FFT*1/N_skewers*p1d
+    plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
+    plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+    plt.xlabel('k [1/A]')
+    plt.ylabel('P1D [A]')
     plt.show()
     plt.savefig('p1d-%d.png'%(healpix))
 
