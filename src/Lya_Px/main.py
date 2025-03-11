@@ -41,6 +41,11 @@ if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > wave_desi_N:
     exit(1) 
 
 print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
+# velocity grid
+vel = wave_to_velocity(wave_fft_grid) # in km/s
+dv = np.mean(np.diff(vel)) # in km/s
+print(dv,np.diff(vel))
+k_vel = np.fft.fftfreq(N_fft,d=dv)
 
 mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
 # while we use i to refer to indices in the global (desi) grid, we use j to refer to the FFT grid of this redshift
@@ -104,6 +109,9 @@ if plot_px:
     plt.ylabel('Px [A]')
     plt.show()
     plt.savefig('px-%d.png'%(healpix))
+
+# compute error
+
 
 # save the results
 out_path = str(sys.argv[4])

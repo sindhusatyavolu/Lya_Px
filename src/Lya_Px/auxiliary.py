@@ -13,6 +13,9 @@ def angular_separation(ra1, dec1, ra2, dec2):
     return angular_distance # in radians
 
 # observed wavelength to velocity units conversion
+def wave_to_velocity(wave):
+    return (wave - LAM_LYA) / LAM_LYA * c_SI
+
 
 
 # anglular separation to transverse distance conversion
