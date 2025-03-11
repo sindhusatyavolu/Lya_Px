@@ -17,7 +17,7 @@ print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LY
 wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
 
 if len(sys.argv) != 4:
-    print("Usage: python main.py <redshift_bin> <redshift_bin_width> <healpix pixel>")
+    print("Usage: python main.py <redshift_bin> <redshift_bin_width> <healpix pixel> <output_path>")
     sys.exit(1)
 
 z_alpha = float(sys.argv[1]) # redshift bin center
@@ -63,11 +63,11 @@ file = read_deltas(healpix,deltas_path)
 
 # get sightlines from the delta file that fall within the fft grid
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
-
+N_skewers = len(skewers)
+norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
 if P1D:
     # compute P1D
     p1d = get_p1d(skewers)
-    N_skewers = len(skewers)
     print('Number of skewers:',N_skewers)
     p1d_norm = pw_A/N_fft*1/N_skewers*p1d
     plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
@@ -95,7 +95,6 @@ skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min) & (separation
 # compute the power spectrum for each separation
 
 px = get_px(skewer_pairs_thetabin,skewers)
-norm_factor = pw_A/N_fft*1/N_skewers
 px_norm = norm_factor*px
 
 if plot_px:
@@ -107,5 +106,6 @@ if plot_px:
     plt.savefig('px-%d.png'%(healpix))
 
 # save the results
-
+out_path = str(argv[4])
+np.savez('../bin/px-%d-%.2f-%.2f-%0.1f-0.1%f.npz'%(healpix,z_alpha,dz,theta_min*RAD_TO_ARCMIN,theta_max*RAD_TO_ARCMIN),k=k[:N_fft//2],px=px_norm[:N_fft//2])
 
