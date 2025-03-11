@@ -1,6 +1,7 @@
 import numpy as np
 from config import *
 from auxiliary import *
+from astropy.io import fits
 
 def read_deltas(healpix,deltas_path):
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
