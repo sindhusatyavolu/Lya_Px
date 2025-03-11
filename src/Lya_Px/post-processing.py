@@ -11,7 +11,7 @@ karr_v = np.load(path)['k_vel'] # in s/km
 
 # bin power spectrum
 pos_k = k_arr[:N_fft//2]
-k_bins = np.histogram(k_arr,bins=20) #np.linspace(pos_k.min(),pos_k.max(),20)
+k_bins, bin_edges = np.histogram(pos_k,bins=20) #np.linspace(pos_k.min(),pos_k.max(),20)
 
 k_centers = 0.5 * (k_bins[:-1] + k_bins[1:])  # Compute bin centers
 
@@ -25,7 +25,7 @@ for n in range(len(k_bins)):
 
 # Plot the binned power spectrum
 plt.plot(k_arr, px, label='Unbinned')
-plt.plot(k_centers, Pbins, label='Binned')
+plt.plot(k_bins, Pbins, label='Binned')
 plt.xlabel('k [1/A]')
 plt.ylabel('P(k) [A]')
 plt.legend()
