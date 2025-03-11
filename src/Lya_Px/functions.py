@@ -33,7 +33,7 @@ def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=True):
         weight_fft_grid=np.zeros(N_fft)
         
         # have to make sure FFT grid is larger than the data grid that falls within the redshift bin
-        if j_min_data < 0 and j_max_data >= N_fft:
+        if (j_max_data-j_min_data) >= N_fft:
             print('Data grid is larger than FFT grid, increase N_fft')
             exit(1)
 
