@@ -24,7 +24,7 @@ for n in range(len(k_bins)):
     Pbins[n] = np.mean(px[bin_indices==n])
 
 # Plot the binned power spectrum
-plt.plot(k_arr, norm_Px[0], label='Unbinned')
+plt.plot(k_arr, px[0], label='Unbinned')
 plt.plot(k_centers, Pbins, label='Binned')
 plt.xlabel('k [1/A]')
 plt.ylabel('P(k) [A]')
