@@ -107,5 +107,5 @@ if plot_px:
 
 # save the results
 out_path = str(sys.argv[4])
-np.savez('../bin/px-%d-%.2f-%.2f-%0.1f-0.1%f.npz'%(healpix,z_alpha,dz,theta_min*RAD_TO_ARCMIN,theta_max*RAD_TO_ARCMIN),k=k[:N_fft//2],px=px_norm[:N_fft//2])
+np.savez(out_path+'/'+'px-%d-%.2f-%.2f-%0.1f-0.1%f.npz'%(healpix,z_alpha,dz,theta_min*RAD_TO_ARCMIN,theta_max*RAD_TO_ARCMIN),k=k[:N_fft//2],px=px_norm[:N_fft//2])
 
