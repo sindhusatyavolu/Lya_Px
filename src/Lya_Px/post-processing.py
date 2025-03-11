@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 from config import *
+import matplotlib.pyplot as plt
 
 path = str(sys.argv[1]) 
 
