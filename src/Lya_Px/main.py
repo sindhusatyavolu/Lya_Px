@@ -45,7 +45,7 @@ print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
 vel = wave_to_velocity(wave_fft_grid) # in km/s
 dv = np.mean(np.diff(vel)) # in km/s
 print(dv,np.diff(vel))
-k_vel = np.fft.fftfreq(N_fft,d=dv)
+k_vel = np.fft.fftfreq(N_fft,d=dv)*2*np.pi # s/km
 
 mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
 # while we use i to refer to indices in the global (desi) grid, we use j to refer to the FFT grid of this redshift
@@ -115,5 +115,5 @@ if plot_px:
 
 # save the results
 out_path = str(sys.argv[4])
-np.savez(out_path+'/'+'px-%d-%.2f-%.2f-%0.1f-0.1%f.npz'%(healpix,z_alpha,dz,theta_min*RAD_TO_ARCMIN,theta_max*RAD_TO_ARCMIN),k=k[:N_fft//2],px=px_norm[:N_fft//2])
+np.savez(out_path+'/'+'px-%d-%.2f-%.2f-%0.1f-0.1%f.npz'%(healpix,z_alpha,dz,theta_min*RAD_TO_ARCMIN,theta_max*RAD_TO_ARCMIN),k=k[:N_fft//2],px=px_norm[:N_fft//2,k_vel=k_vel[:N_fft//2])
 
