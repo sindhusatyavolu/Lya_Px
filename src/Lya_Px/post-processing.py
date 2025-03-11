@@ -16,16 +16,16 @@ print(k_bins)
 k_centers = 0.5 * (k_bins[:-1] + k_bins[1:])  # Compute bin centers
 
 # Digitize k values to find bin indices
-bin_indices = np.digitize(pos_k, k_bins) - 1 # Subtract 1 to have indices starting from 0
+bin_indices = np.digitize(pos_k, bin_edges) - 1 # Subtract 1 to have indices starting from 0
 
 # Take moving average of Pk in each k bin
-Pbins = np.zeros(len(k_bins))
-for n in range(len(k_bins)):
+Pbins = np.zeros(len(bin_edges)-1)
+for n in range(len(bin_edges)-1):
     Pbins[n] = np.mean(px[bin_indices==n])
 
 # Plot the binned power spectrum
 plt.plot(k_arr, px, label='Unbinned')
-plt.plot(k_bins, Pbins, label='Binned')
+plt.plot(bin_edges, Pbins, label='Binned')
 plt.xlabel('k [1/A]')
 plt.ylabel('P(k) [A]')
 plt.legend()
