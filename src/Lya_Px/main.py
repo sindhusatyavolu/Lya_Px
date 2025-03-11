@@ -57,9 +57,9 @@ mask_fft_grid[j_max:]=0
 # Read inputs
 
 healpix = int(sys.argv[3])
-deltas_path='/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
-delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
-file = fits.open(delta_file)
+
+deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
+file = read_deltas(healpix,deltas_path)
 
 # get sightlines from the delta file that fall within the fft grid
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
@@ -87,18 +87,24 @@ print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles
 print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
-skewer_pairs_thetabin = skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)]
+theta_min = 6*ARCMIN_TO_RAD
+theta_max = 9*ARCMIN_TO_RAD
 
+skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min) & (separation_angles<theta_max)]
 
 # compute the power spectrum for each separation
 
 px = get_px(skewer_pairs_thetabin,skewers)
-plt.plot(k[:N_fft//2],px[:N_fft//2])
-plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-plt.xlabel('k [1/A]')
-plt.ylabel('Px [A]')
-plt.show()
-plt.savefig('px-%d.png'%(healpix))
+norm_factor = pw_A/N_fft*1/N_skewers
+px_norm = norm_factor*px
+
+if plot_px:
+    plt.plot(k[:N_fft//2],px_norm[:N_fft//2])
+    plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+    plt.xlabel('k [1/A]')
+    plt.ylabel('Px [A]')
+    plt.show()
+    plt.savefig('px-%d.png'%(healpix))
 
 # save the results
 

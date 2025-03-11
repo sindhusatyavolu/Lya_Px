@@ -2,6 +2,12 @@ import numpy as np
 from config import *
 from auxiliary import *
 
+def read_deltas(healpix,deltas_path):
+    delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
+    file = fits.open(delta_file)
+    return file
+
+
 def get_skewers(wave_fft_grid,mask_fft_grid,file,verbose=True):
     skewers=[]
     for hdu in file[1:]:

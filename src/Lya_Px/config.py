@@ -10,7 +10,7 @@ n = 10
 N_fft = 2**n
 pw_A = 0.8 # pixel width in Angstrom
 P1D = True
-
+plot_px = True
 
 
 
