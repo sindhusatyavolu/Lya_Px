@@ -9,7 +9,7 @@ px = np.load(path)['px'] # in A
 karr_v = np.load(path)['k_vel'] # in s/km
 
 # bin power spectrum
-pos_k = k_arr[:N_FFT//2]
+pos_k = k_arr[:N_fft//2]
 k_bins = np.linspace(pos_k.min(),pos_k.max(),20)
 
 k_centers = 0.5 * (k_bins[:-1] + k_bins[1:])  # Compute bin centers
