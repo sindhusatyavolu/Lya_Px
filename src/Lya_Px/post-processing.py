@@ -20,7 +20,7 @@ bin_indices = np.digitize(k_arr, k_bins) - 1
 # Take moving average of Pk in each k bin
 Pbins = np.zeros(len(k_bins))
 for n in range(len(k_bins)):
-    Pbins[n] = np.mean(norm_Px[0][bin_indices==n])
+    Pbins[n] = np.mean(px[bin_indices==n])
 
 # Plot the binned power spectrum
 plt.plot(k_arr, norm_Px[0], label='Unbinned')
