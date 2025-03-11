@@ -82,6 +82,7 @@ def get_p1d(skewers):
     for skewer in skewers:
         delta = skewer['delta_fft_grid']
         weight = skewer['weight_fft_grid']
-        wighted_delta_ft = np.fft.fft(delta)
+        wighted_delta_ft = np.fft.fft(delta*weight)
         p1d += np.abs(wighted_delta_ft)**2
     return p1d
+
