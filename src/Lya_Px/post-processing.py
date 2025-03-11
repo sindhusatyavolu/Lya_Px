@@ -11,9 +11,8 @@ karr_v = np.load(path)['k_vel'] # in s/km
 
 # bin power spectrum
 pos_k = k_arr[:N_fft//2]
-k_bins, bin_edges = np.histogram(pos_k,bins=20) #np.linspace(pos_k.min(),pos_k.max(),20)
-print(k_bins)
-k_centers = 0.5 * (k_bins[:-1] + k_bins[1:])  # Compute bin centers
+k_bins, bin_edges = np.histogram(pos_k,bins=N_fft//4) #np.linspace(pos_k.min(),pos_k.max(),20)
+
 
 # Digitize k values to find bin indices
 bin_indices = np.digitize(pos_k, bin_edges) - 1 # Subtract 1 to have indices starting from 0
