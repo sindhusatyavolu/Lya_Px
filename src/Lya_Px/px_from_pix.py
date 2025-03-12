@@ -8,7 +8,7 @@ def get_px(skewer_pair_indices,skewers):
     for skewer1_index, skewer2_index in skewer_pair_indices:
         skewer1 = skewers[skewer1_index]
         skewer2 = skewers[skewer2_index]
-        print(angular_separation(skewer1['RA'],skewer1['Dec'],skewer2['RA'],skewer2['Dec']))
+        #print(angular_separation(skewer1['RA'],skewer1['Dec'],skewer2['RA'],skewer2['Dec']))
         # compute the fourier transform of delta1 and delta2
         delta1 = skewer1['delta_fft_grid']
         delta2 = skewer2['delta_fft_grid']
