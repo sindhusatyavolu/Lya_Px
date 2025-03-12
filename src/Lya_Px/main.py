@@ -111,7 +111,7 @@ for i in range(len(theta_min)):
 
 if plot_px:
     for i in range(len(theta_min)):
-        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%.1f-%.1f arcmin'%(theta_min[i],theta_max[i]))
+        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min[i],theta_max[i]))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
     plt.ylabel('Px [A]')
