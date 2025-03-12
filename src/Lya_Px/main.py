@@ -112,7 +112,7 @@ for i in range(len(theta_min)):
         skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
         print(skewer_pairs_thetabin)
         print(skewer_pairs_thetabin.shape)
-        print(angular_separation(skewers[skewer_pairs_thetabin[0]['RA']],skewers[skewer_pairs_thetabin[0]['DEC']],skewers[skewer_pairs_thetabin[1]['RA']],skewers[skewer_pairs_thetabin[1]['DEC']]))
+        print(angular_separation(skewers[skewer_pairs_thetabin[0]]['RA'],skewers[skewer_pairs_thetabin[0]]['DEC'],skewers[skewer_pairs_thetabin[1]]['RA'],skewers[skewer_pairs_thetabin[1]]['DEC']))
         print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
         px *= norm_factor
