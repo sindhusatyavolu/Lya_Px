@@ -18,7 +18,7 @@ print(k_bins,bin_edges,'bins')
 # Digitize k values to find bin indices
 bin_indices = np.digitize(pos_k, bin_edges) - 1 
 
-print(bin_edges[bin_indices[0]]< pos_k[1] <bin_edges[bin_indices[2]])
+print(bin_edges[bin_indices[0]],'<', pos_k[1],'<',bin_edges[bin_indices[2]])
 
 # Take moving average of Pk in each k bin
 Pbins = np.zeros(len(bin_edges))
