@@ -13,10 +13,12 @@ karr_v = np.load(path)['k_vel'] # in s/km
 # bin power spectrum
 pos_k = k_arr[:N_fft//2]
 k_bins, bin_edges = np.histogram(pos_k,bins=N_fft//4) #np.linspace(pos_k.min(),pos_k.max(),20)
-
+print(k_bins,bin_edges,'bins')
 
 # Digitize k values to find bin indices
-bin_indices = np.digitize(pos_k, bin_edges) - 1 # Subtract 1 to have indices starting from 0
+bin_indices = np.digitize(pos_k, bin_edges) - 1 
+
+print(bin_edges[bin_indices[0]]< pos_k[1] <bin_edges[bin_indices[2]])
 
 # Take moving average of Pk in each k bin
 Pbins = np.zeros(len(bin_edges))
