@@ -104,7 +104,6 @@ for i in range(len(theta_min)):
         skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
         px *= norm_factor
-        plt.plot(k[:N_fft//2],px_norm[:N_fft//2],label='%.1f-%.1f arcmin'%(theta_min[i]*RAD_TO_ARCMIN,theta_max[i]*RAD_TO_ARCMIN))
 
 if plot_px:
     for i in range(len(theta_min)):
