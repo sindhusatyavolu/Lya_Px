@@ -5,9 +5,10 @@ from auxiliary import *
 def get_px(skewer_pair_indices,skewers):
     # loop over the pairs of skewers
     px_ft = np.zeros(N_fft)
-    for i,j in skewer_pair_indices:
-        skewer1=skewers[i]
-        skewer2=skewers[j]
+    for skewer1_index, skewer2_index in skewer_pair_indices:
+        skewer1 = skewers[skewer1_index]
+        skewer2 = skewers[skewer2_index]
+        print(angular_separation(skewer1['RA'],skewer1['Dec'],skewer2['RA'],skewer2['Dec']))
         # compute the fourier transform of delta1 and delta2
         delta1 = skewer1['delta_fft_grid']
         delta2 = skewer2['delta_fft_grid']
