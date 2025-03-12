@@ -88,9 +88,7 @@ if P1D:
     plt.clf()
 
 # compute separations
-skewer_pairs = get_separations(skewers)
-separation_angles = skewer_pairs[:,2]
-#skewer_pairs = np.array(skewer_pairs)
+separation_angles, skewer_pairs_indices = get_separations(skewers)
 print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
 print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 
@@ -108,7 +106,7 @@ px = np.zeros((len(theta_min),N_fft))
 
 for i in range(len(theta_min)):
         arg = (separation_angles>theta_min[i]) & (separation_angles<theta_max[i])
-        skewer_pairs_thetabin = skewer_pairs[arg]
+        skewer_pairs_thetabin = skewer_pairs_indices[arg]
         print(skewer_pairs_thetabin)
         print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
