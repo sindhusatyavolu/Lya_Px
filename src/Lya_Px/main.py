@@ -97,8 +97,8 @@ print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_
 print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 
-theta_min = np.array([1,15])*ARCMIN_TO_RAD
-theta_max = np.array([2,20])*ARCMIN_TO_RAD
+theta_min = np.array([1])*ARCMIN_TO_RAD
+theta_max = np.array([2])*ARCMIN_TO_RAD
 
 assert len(theta_min) == len(theta_max)
 
