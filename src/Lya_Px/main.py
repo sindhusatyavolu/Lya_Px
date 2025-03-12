@@ -108,7 +108,7 @@ px = np.zeros((len(theta_min),N_fft))
 
 for i in range(len(theta_min)):
         arg = (separation_angles>theta_min[i]) & (separation_angles<theta_max[i])
-        skewer_pairs_thetabin = skewer_pairs[][][arg]
+        skewer_pairs_thetabin = skewer_pairs[arg]
         print(skewer_pairs_thetabin)
         print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
