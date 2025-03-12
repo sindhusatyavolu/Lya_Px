@@ -90,11 +90,13 @@ if P1D:
 # compute separations
 separation_angles,skewer_pairs = get_separations(skewers)
 separation_angles = np.array(separation_angles)
-skewer_pairs = np.array(skewer_pairs)
+#skewer_pairs = np.array(skewer_pairs)
 print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
 print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
-print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
-print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
+
+
+#print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
+#print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 
 theta_min = np.array([1])*ARCMIN_TO_RAD
@@ -106,6 +108,8 @@ px = np.zeros((len(theta_min),N_fft))
 
 for i in range(len(theta_min)):
         skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
+        print(skewer_pairs_thetabin)
+        print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
         px *= norm_factor
 
@@ -118,6 +122,7 @@ if plot_px:
     plt.legend()
     plt.show()
     plt.savefig('px-%d.png'%(healpix))
+
 
 # compute variance
 
