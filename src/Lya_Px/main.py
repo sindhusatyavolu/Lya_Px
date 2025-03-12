@@ -81,7 +81,8 @@ if P1D:
     plt.ylabel('P1D [A]')
     plt.show()
     plt.savefig('p1d-%d.png'%(healpix))
-
+    #clear image
+    plt.clf()
 
 # compute separations
 separation_angles,skewer_pairs = get_separations(skewers)
