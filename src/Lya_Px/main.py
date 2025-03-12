@@ -108,6 +108,7 @@ px = np.zeros((len(theta_min),N_fft))
 
 for i in range(len(theta_min)):
         arg = (separation_angles>theta_min[i]) & (separation_angles<theta_max[i])
+        print(arg)
         skewer_pairs_thetabin = skewer_pairs_indices[arg][arg]
         print(skewer_pairs_thetabin)
         print(len(skewer_pairs_thetabin))
