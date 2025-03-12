@@ -36,11 +36,13 @@ k = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
 # figure out the index of the global (desi) grid that is closer to the center of the redshift bin
 i_cen = round((lam_cen-wave_desi_min)/pw_A) 
 wave_fft_grid = wave_desi[i_cen-N_fft//2:i_cen+N_fft//2] 
+
 if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > wave_desi_N:
     print('FFT grid is out of bounds, try different N_fft')
     exit(1) 
 
 print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
+
 # velocity grid
 vel = wave_to_velocity(wave_fft_grid) # in km/s
 dv = np.mean(np.diff(vel)) # in km/s
@@ -70,6 +72,7 @@ file = read_deltas(healpix,deltas_path)
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 N_skewers = len(skewers)
 norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
+
 if P1D:
     # compute P1D
     p1d = get_p1d(skewers)
@@ -94,8 +97,8 @@ print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_
 print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 
-theta_min = np.array([5,15])*ARCMIN_TO_RAD
-theta_max = np.array([10,20])*ARCMIN_TO_RAD
+theta_min = np.array([1,15])*ARCMIN_TO_RAD
+theta_max = np.array([2,20])*ARCMIN_TO_RAD
 
 assert len(theta_min) == len(theta_max)
 
@@ -116,10 +119,13 @@ if plot_px:
     plt.show()
     plt.savefig('px-%d.png'%(healpix))
 
-# compute error
+# compute variance
 
 
 # save the results
 out_path = str(sys.argv[4])
 np.savez(out_path+'/'+'px-%d-%.2f-%.2f.npz'%(healpix,z_alpha,dz),k=k[:N_fft//2],px=px[:,:N_fft//2],k_vel=k_vel[:N_fft//2],theta_min=theta_min,theta_max=theta_max)
 
+# nfft, variance, average over skewers of square of weighted mask fft grid  
+
+# compare with forestflow 

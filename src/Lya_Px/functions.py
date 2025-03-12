@@ -93,3 +93,4 @@ def get_p1d(skewers):
         p1d += np.abs(wighted_delta_ft)**2
     return p1d
 
+# Martine: Maybe use class instead of dictionary for skewers?

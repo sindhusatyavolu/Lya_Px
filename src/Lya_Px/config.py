@@ -9,7 +9,7 @@ ARCMIN_TO_RAD = 1.0/RAD_TO_ARCMIN
 n = 10
 N_fft = 2**n
 pw_A = 0.8 # pixel width in Angstrom
-P1D = True
+P1D = False
 plot_px = True
 
 
