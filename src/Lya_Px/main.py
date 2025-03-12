@@ -111,6 +111,7 @@ if plot_px:
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
     plt.ylabel('Px [A]')
+    plt.legend()
     plt.show()
     plt.savefig('px-%d.png'%(healpix))
 
