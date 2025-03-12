@@ -107,9 +107,8 @@ assert len(theta_min) == len(theta_max)
 px = np.zeros((len(theta_min),N_fft))
 
 for i in range(len(theta_min)):
-        arg = (separation_angles>theta_min[i]) & (separation_angles<theta_max[i])
-        print(arg)
-        skewer_pairs_thetabin = skewer_pairs_indices[arg][arg]
+        # select pairs of skewers that fall within the angular separation bin
+        skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])][(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
         print(skewer_pairs_thetabin)
         print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
