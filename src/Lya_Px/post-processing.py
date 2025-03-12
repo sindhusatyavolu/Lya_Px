@@ -32,7 +32,7 @@ plt.xlabel('k [1/A]')
 plt.ylabel('P(k) [A]')
 plt.legend()
 plt.show()
-plt.savefig('binned_px.png')
+#plt.savefig('binned_px.png')
 
 
 

@@ -92,18 +92,23 @@ print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles
 print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
-theta_min = 6*ARCMIN_TO_RAD
-theta_max = 9*ARCMIN_TO_RAD
 
-skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min) & (separation_angles<theta_max)]
+theta_min = np.array([5,15])*ARCMIN_TO_RAD
+theta_max = np.array([10,20])*ARCMIN_TO_RAD
 
-# compute the power spectrum for each separation
+assert len(theta_min) == len(theta_max)
 
-px = get_px(skewer_pairs_thetabin,skewers)
-px_norm = norm_factor*px
+px = np.zeros((len(theta_min),N_fft))
+
+for i in range(len(theta_min)):
+        skewer_pairs_thetabin = skewer_pairs[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
+        px[i,:] = get_px(skewer_pairs_thetabin,skewers)
+        px *= norm_factor
+        plt.plot(k[:N_fft//2],px_norm[:N_fft//2],label='%.1f-%.1f arcmin'%(theta_min[i]*RAD_TO_ARCMIN,theta_max[i]*RAD_TO_ARCMIN))
 
 if plot_px:
-    plt.plot(k[:N_fft//2],px_norm[:N_fft//2])
+    for i in range(len(theta_min)):
+        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%.1f-%.1f arcmin'%(theta_min[i],theta_max[i]))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
     plt.ylabel('Px [A]')
