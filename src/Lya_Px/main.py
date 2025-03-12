@@ -99,8 +99,9 @@ print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles
 #print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 
-theta_min = np.array([1])*ARCMIN_TO_RAD
-theta_max = np.array([2])*ARCMIN_TO_RAD
+theta_min = np.array([6])*ARCMIN_TO_RAD
+theta_max = np.array([9])*ARCMIN_TO_RAD
+print(theta_min,theta_max)
 
 assert len(theta_min) == len(theta_max)
 
@@ -111,7 +112,7 @@ for i in range(len(theta_min)):
         skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]
         print(skewer_pairs_thetabin)
         print(skewer_pairs_thetabin.shape)
-        print(angular_separation(skewers[skewer_pairs_thetabin[0]['RA']],skewers[skewer_pairs_thetabin[0]['Dec']],skewers[skewer_pairs_thetabin[1]['RA']],skewers[skewer_pairs_thetabin[1]['Dec']]))
+        print(angular_separation(skewers[skewer_pairs_thetabin[0]['RA']],skewers[skewer_pairs_thetabin[0]['DEC']],skewers[skewer_pairs_thetabin[1]['RA']],skewers[skewer_pairs_thetabin[1]['DEC']]))
         print(len(skewer_pairs_thetabin))
         px[i,:] = get_px(skewer_pairs_thetabin,skewers)
         px *= norm_factor
