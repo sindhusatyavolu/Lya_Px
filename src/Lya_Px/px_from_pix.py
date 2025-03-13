@@ -4,6 +4,13 @@ from auxiliary import *
 
 def get_px(skewers,theta_min,theta_max):
     # loop over the pairs of skewers
+        # measure unnormalized PX 
+    # F_m = (f_m g_m^*).real
+    F_G_m=np.zeros(N_fft)
+    # mean of w_m v_m^* (product of FFT of masks)
+    # w_v_m = (w_m v_m^*).real (product of FFT mask, real part only)
+    w_v_m=np.zeros(N_fft)
+    
     for i1 in range(1,len(skewers)):
         sk1=skewers[i1]
         w1=sk1['weight_fft_grid']
