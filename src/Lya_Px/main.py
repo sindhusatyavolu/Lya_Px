@@ -88,35 +88,34 @@ if P1D:
     plt.clf()
 
 # compute separations
-separation_angles, skewer_pairs_indices = get_separations(skewers)
-separation_angles  = np.array(separation_angles)
-skewer_pairs_indices = np.array(skewer_pairs_indices)
-print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
-print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
+#separation_angles, skewer_pairs_indices = get_separations(skewers)
+#separation_angles  = np.array(separation_angles)
+#skewer_pairs_indices = np.array(skewer_pairs_indices)
+#print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
+#print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 
 
 #print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 #print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
+# create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
+theta_min_array = np.array([5,15])*ARCMIN_TO_RAD
+theta_max_array = np.array([10,20])*ARCMIN_TO_RAD
 
-theta_min = np.array([5,15])*ARCMIN_TO_RAD
-theta_max = np.array([10,20])*ARCMIN_TO_RAD
-print(theta_min,theta_max)
+assert theta_min.size == theta_max.size
 
-assert len(theta_min) == len(theta_max)
+px = np.zeros((len(theta_bins),N_fft))
 
-px = np.zeros((len(theta_min),N_fft))
-
-for i in range(len(theta_min)):
+for i in range(len(theta_bins)):
         # select pairs of skewers that fall within the angular separation bin
-        skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]                
+        #skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]                
         #print(angular_separation(skewers[skewer_pairs_thetabin[0][0]]['RA'],skewers[skewer_pairs_thetabin[0][0]]['Dec'],skewers[skewer_pairs_thetabin[0][1]]['RA'],skewers[skewer_pairs_thetabin[0][1]]['Dec']))     
-        px[i,:] = get_px(skewer_pairs_thetabin,skewers)
+        px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
         px *= norm_factor
 
 if plot_px:
     for i in range(len(theta_min)):
-        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min[i]*RAD_TO_ARCMIN,theta_max[i]*RAD_TO_ARCMIN))
+        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
     plt.ylabel('Px [A]')
