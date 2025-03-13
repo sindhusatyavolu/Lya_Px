@@ -99,8 +99,8 @@ if P1D:
 #print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 # create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
-theta_min_array = np.array([10,25])*ARCMIN_TO_RAD
-theta_max_array = np.array([20,30])*ARCMIN_TO_RAD
+theta_min_array = np.array([10,15])*ARCMIN_TO_RAD
+theta_max_array = np.array([15,20])*ARCMIN_TO_RAD
 
 assert theta_min_array.size == theta_max_array.size
 
