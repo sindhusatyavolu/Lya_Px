@@ -2,7 +2,7 @@ import numpy as np
 from config import *
 from auxiliary import *
 
-def get_px(skewers,theta_min,theta_max,verbose=False):
+def get_px(skewers,theta_min,theta_max):
     # loop over the pairs of skewers
      for i1 in range(1,len(skewers)):
         sk1=skewers[i1]
@@ -32,8 +32,6 @@ def get_px(skewers,theta_min,theta_max,verbose=False):
             f_2_m=np.fft.fft(d2*w2)
             F_G_m += (f_1_m*np.conjugate(f_2_m)).real
     
-    if verbose:
-        print('Np =',Np)
     return F_G_m
                 
 
