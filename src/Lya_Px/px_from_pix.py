@@ -5,7 +5,7 @@ from auxiliary import *
 def get_px(skewers,theta_min,theta_max):
     px_ft = np.zeros(N_fft)
     for i in range(len(skewers)):
-        for j in range(i):
+        for j in range(i+1,len(skewers)):
             if angular_separation(skewers[i]['RA'],skewers[i]['Dec'],skewers[j]['RA'],skewers[j]['Dec'])>theta_min and angular_separation(skewers[i]['RA'],skewers[i]['Dec'],skewers[j]['RA'],skewers[j]['Dec'])<theta_max:
                 delta1 = skewers[i]['delta_fft_grid']
                 delta2 = skewers[j]['delta_fft_grid']
