@@ -114,7 +114,7 @@ for i in range(len(theta_min_array)):
         px *= norm_factor
 
 if plot_px:
-    for i in range(len(theta_min)):
+    for i in range(len(theta_min_array)):
         plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
