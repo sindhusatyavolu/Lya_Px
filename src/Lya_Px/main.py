@@ -102,7 +102,7 @@ if P1D:
 theta_min_array = np.array([5,15])*ARCMIN_TO_RAD
 theta_max_array = np.array([10,20])*ARCMIN_TO_RAD
 
-assert theta_min.size == theta_max.size
+assert theta_min_array.size == theta_max_array.size
 
 px = np.zeros((len(theta_bins),N_fft))
 
