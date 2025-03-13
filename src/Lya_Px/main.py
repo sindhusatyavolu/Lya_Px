@@ -100,7 +100,7 @@ if P1D:
 
 # create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
 theta_min_array = np.array([14,25])*ARCMIN_TO_RAD
-theta_max_array = np.array([20,30])*ARCMIN_TO_RAD
+theta_max_array = np.array([18,30])*ARCMIN_TO_RAD
 
 assert theta_min_array.size == theta_max_array.size
 
