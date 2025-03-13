@@ -2,8 +2,43 @@ import numpy as np
 from config import *
 from auxiliary import *
 
-def get_px(skewers,theta_min,theta_max):
+def get_px(skewers,theta_min,theta_max,verbose=False):
     # loop over the pairs of skewers
+     for i1 in range(1,len(skewers)):
+        sk1=skewers[i1]
+        w1=sk1['weight_fft_grid']
+        d1=sk1['delta_fft_grid']
+        Np =  0
+        for i2 in range(i1):
+            sk2=skewers[i2]
+            # compute angular separation, in radians
+            ang=angular_separation(sk1['RA'],sk1['Dec'],sk2['RA'],sk2['Dec'])
+            if ang<theta_min or ang>theta_max:
+                continue
+                
+            # correlate Fourier modes
+            w2=sk2['weight_fft_grid']
+            d2=sk2['delta_fft_grid']
+                            
+            Np+=1
+            
+            # FFT of masks
+            w_1_m = np.fft.fft(w1)
+            w_2_m = np.fft.fft(w2)
+            w_v_m += (w_1_m*np.conjugate(w_2_m)).real
+     
+            # and FFT again to obtain masked modes
+            f_1_m=np.fft.fft(d1*w1)
+            f_2_m=np.fft.fft(d2*w2)
+            F_G_m += (f_1_m*np.conjugate(f_2_m)).real
+    
+    if verbose:
+        print('Np =',Np)
+    return F_G_m
+                
+
+
+"""
     px_ft = np.zeros(N_fft)
     for i in range(len(skewers)):
         for j in range(i+1,len(skewers)):
@@ -22,6 +57,7 @@ def get_px(skewers,theta_min,theta_max):
                 # compute the products
                 px_ft += (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real
     return px_ft
+"""
 
 """
     for skewer1_index, skewer2_index in skewer_pair_indices:

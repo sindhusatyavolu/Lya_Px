@@ -104,14 +104,14 @@ theta_max_array = np.array([20,30])*ARCMIN_TO_RAD
 
 assert theta_min_array.size == theta_max_array.size
 
-px = np.zeros((len(theta_min_array),N_fft))
+px = np.empty((len(theta_min_array),N_fft))
 
 for i in range(len(theta_min_array)):
         # select pairs of skewers that fall within the angular separation bin
         #skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]                
         #print(angular_separation(skewers[skewer_pairs_thetabin[0][0]]['RA'],skewers[skewer_pairs_thetabin[0][0]]['Dec'],skewers[skewer_pairs_thetabin[0][1]]['RA'],skewers[skewer_pairs_thetabin[0][1]]['Dec']))     
         px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
-        px *= norm_factor
+        px[i,:] *= norm_factor
 
 if plot_px:
     for i in range(len(theta_min_array)):
@@ -121,7 +121,7 @@ if plot_px:
     plt.ylabel('Px [A]')
     plt.legend()
     plt.show()
-    plt.savefig('px-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN))
+    plt.savefig('px-%d-%d-%d_new.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN))
 
 
 # compute variance
