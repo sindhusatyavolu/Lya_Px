@@ -2,13 +2,13 @@ import numpy as np
 from config import *
 from auxiliary import *
 
-"""
+
 def get_px(skewers,theta_min,theta_max):
     px_ft = np.zeros(N_fft)
     for i in range(len(skewers)):
         for j in range(i+1,len(skewers)):
             if angular_separation(skewers[j]['RA'],skewers[j]['Dec'],skewers[i]['RA'],skewers[i]['Dec'])>theta_min and angular_separation(skewers[j]['RA'],skewers[j]['Dec'],skewers[i]['RA'],skewers[i]['Dec'])<theta_max:
-                print(i,j)
+                #print(i,j)
                 delta1 = skewers[i]['delta_fft_grid']
                 delta2 = skewers[j]['delta_fft_grid']
                 weight1 = skewers[i]['weight_fft_grid']
@@ -64,7 +64,7 @@ def get_px(skewers,theta_min,theta_max):
     
     return F_G_m
                 
-
+"""
 """
     for skewer1_index, skewer2_index in skewer_pair_indices:
         skewer1 = skewers[skewer1_index]

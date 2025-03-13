@@ -121,7 +121,7 @@ if plot_px:
     plt.ylabel('Px [A]')
     plt.legend()
     plt.show()
-    plt.savefig('px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+    plt.savefig('px-%d-%d-%d-%d-%d-old.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 
 # compute variance
