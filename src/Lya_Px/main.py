@@ -99,8 +99,8 @@ if P1D:
 #print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 # create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
-theta_min_array = np.array([14,25])*ARCMIN_TO_RAD
-theta_max_array = np.array([18,30])*ARCMIN_TO_RAD
+theta_min_array = np.array([5,25])*ARCMIN_TO_RAD
+theta_max_array = np.array([10,30])*ARCMIN_TO_RAD
 
 assert theta_min_array.size == theta_max_array.size
 
@@ -121,7 +121,7 @@ if plot_px:
     plt.ylabel('Px [A]')
     plt.legend()
     plt.show()
-    plt.savefig('px-%d-%d-%d_new.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN))
+    plt.savefig('px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 
 # compute variance
