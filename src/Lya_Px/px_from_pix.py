@@ -4,7 +4,7 @@ from auxiliary import *
 
 def get_px(skewers,theta_min,theta_max):
     # loop over the pairs of skewers
-     for i1 in range(1,len(skewers)):
+    for i1 in range(1,len(skewers)):
         sk1=skewers[i1]
         w1=sk1['weight_fft_grid']
         d1=sk1['delta_fft_grid']
