@@ -68,6 +68,8 @@ healpix = int(sys.argv[3])
 deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
 file = read_deltas(healpix,deltas_path)
 
+print('Read delta file')
+
 """
 # get sightlines from the delta file that fall within the fft grid
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
