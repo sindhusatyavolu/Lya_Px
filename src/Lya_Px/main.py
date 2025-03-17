@@ -140,10 +140,10 @@ for hdu in file[1:]:
     RA = hdu.header['RA']
     Dec = hdu.header['DEC']
     z_qso = hdu.header['Z']
-    # ignore skewers with no data in the redshift bin
+    # ignore skewers with no data at all in the redshift bin
     if wave_data[-1]<lam_min or wave_data[0]>lam_max:
         continue
-    
+
     skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, None, None, None, RA, Dec, z_qso)
     skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
     skewers.append(skewer)
