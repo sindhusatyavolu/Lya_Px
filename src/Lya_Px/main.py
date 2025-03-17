@@ -164,34 +164,6 @@ if P1D:
     plt.clf()
 
 
-"""
-# get sightlines from the delta file that fall within the fft grid
-skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
-N_skewers = len(skewers)
-norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
-
-if P1D:
-    # compute P1D
-    p1d = get_p1d(skewers)
-    print('Number of skewers:',N_skewers)
-    p1d_norm = pw_A/N_fft*1/N_skewers*p1d
-    plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
-    plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-    plt.xlabel('k [1/A]')
-    plt.ylabel('P1D [A]')
-    plt.show()
-    plt.savefig('p1d-%d.png'%(healpix))
-    #clear image
-    plt.clf()
-
-# compute separations
-#separation_angles, skewer_pairs_indices = get_separations(skewers)
-#separation_angles  = np.array(separation_angles)
-#skewer_pairs_indices = np.array(skewer_pairs_indices)
-#print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
-#print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
-
-
 # create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
 theta_min_array = np.array([10,15])*ARCMIN_TO_RAD
 theta_max_array = np.array([15,20])*ARCMIN_TO_RAD
@@ -201,11 +173,8 @@ assert theta_min_array.size == theta_max_array.size
 px = np.empty((len(theta_min_array),N_fft))
 
 for i in range(len(theta_min_array)):
-        # select pairs of skewers that fall within the angular separation bin
-        #skewer_pairs_thetabin = skewer_pairs_indices[(separation_angles>theta_min[i]) & (separation_angles<theta_max[i])]                
-        #print(angular_separation(skewers[skewer_pairs_thetabin[0][0]]['RA'],skewers[skewer_pairs_thetabin[0][0]]['Dec'],skewers[skewer_pairs_thetabin[0][1]]['RA'],skewers[skewer_pairs_thetabin[0][1]]['Dec']))     
-        px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
-        px[i,:] *= norm_factor
+    px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
+    px[i,:] *= norm_factor
 
 if plot_px:
     for i in range(len(theta_min_array)):
@@ -220,7 +189,7 @@ if plot_px:
 
 # compute variance
 
-"""
+
 
 
 # save the results
