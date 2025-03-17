@@ -130,7 +130,7 @@ class Skewers:
         self.fft_weighted_delta = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid) # fourier space
 
     
-# get sightlines from the delta file that fall within the fft grid
+# get sightlines from the delta file and map them to the FFT grid
 skewers = []
 for hdu in file[1:]:
     wave_data=10.0**(hdu.data['LOGLAM'])
@@ -180,8 +180,8 @@ if plot_px:
     for i in range(len(theta_min_array)):
         plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-    plt.xlabel('k [1/A]')
-    plt.ylabel('Px [A]')
+    plt.xlabel('$k$ [1/A]')
+    plt.ylabel(r'$P_{\times}$ [A]')
     plt.legend()
     plt.show()
     plt.savefig('px-%d-%d-%d-%d-%d-old.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
