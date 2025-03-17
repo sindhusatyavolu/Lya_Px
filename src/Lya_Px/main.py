@@ -81,6 +81,10 @@ class Skewers:
         self.weight_fft_grid = weight_fft_grid
         self.j_min_data = None
         self.j_max_data = None
+        self.fft_delta = None
+        self.fft_weight = None
+        self.fft_weighted_delta = None
+        
     def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
         self.weight_data *= (self.wave_data/4500)**3.8
         j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
@@ -116,12 +120,13 @@ class Skewers:
         
         weight_fft_grid = weight_fft_grid*mask_fft_grid
 
-        self.delta_fft_grid = delta_fft_grid 
-        self.weight_fft_grid = weight_fft_grid
-        self.delta_fft = np.fft.fft(self.delta_fft_grid)
-        self.weight_fft = np.fft.fft(self.weight_fft_grid)
-        self.weighted_delta_fft = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid)
+        self.delta_fft_grid = delta_fft_grid  # real space 
+        self.weight_fft_grid = weight_fft_grid # real space 
         
+        self.fft_delta = np.fft.fft(self.delta_fft_grid) # fourier space
+        self.fft_weight = np.fft.fft(self.weight_fft_grid) # fourier space
+        self.fft_weighted_delta = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid) # fourier space
+
     
 
 
