@@ -68,6 +68,7 @@ healpix = int(sys.argv[3])
 deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
 file = read_deltas(healpix,deltas_path)
 
+"""
 # get sightlines from the delta file that fall within the fft grid
 skewers = get_skewers(wave_fft_grid,mask_fft_grid,file)
 N_skewers = len(skewers)
@@ -94,9 +95,6 @@ if P1D:
 #print('minimum and maximum separation in degrees:',separation_angles.min()*RAD_TO_DEG,separation_angles.max()*RAD_TO_DEG)
 #print(separation_angles[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
 
-
-#print(skewer_pairs[(separation_angles*RAD_TO_ARCMIN>6) & (separation_angles*RAD_TO_ARCMIN<9)])
-#print(angular_separation(skewers[0]['RA'],skewers[0]['Dec'],skewers[1]['RA'],skewers[1]['Dec']))
 
 # create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
 theta_min_array = np.array([10,15])*ARCMIN_TO_RAD
@@ -125,6 +123,8 @@ if plot_px:
 
 
 # compute variance
+
+"""
 
 
 # save the results
