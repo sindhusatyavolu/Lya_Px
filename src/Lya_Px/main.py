@@ -68,7 +68,58 @@ healpix = int(sys.argv[3])
 deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
 file = read_deltas(healpix,deltas_path)
 
-print('Read delta file')
+class Skewers:
+    def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, RA, Dec, z_qso):
+        self.wave_data = wave_data
+        self.delta_data = delta_data
+        self.weight_data = weight_data
+        self.RA = RA
+        self.Dec = Dec
+        self.z_qso = z_qso
+
+        self.delta_fft_grid = delta_fft_grid
+        self.weight_fft_grid = weight_fft_grid
+        self.j_min_data = None
+        self.j_max_data = None
+    def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
+        self.weight_data *= (self.wave_data/4500)**3.8
+        j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
+        j_max_data=round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
+        self.j_min_data = j_min_data
+        self.j_max_data = j_max_data
+        
+        # map the data deltas and weights into the FFT grid
+        delta_fft_grid=np.zeros(N_fft)
+        weight_fft_grid=np.zeros(N_fft)
+        
+        # have to make sure FFT grid is larger than the data grid that falls within the redshift bin
+        if (j_max_data-j_min_data) >= N_fft:
+            print('Data grid is larger than FFT grid, increase N_fft')
+            exit(1)
+
+        # figure out whether the spectrum is cut at low-z or at high-z
+        loz_cut=False
+        hiz_cut=False
+        if j_min_data < 0:
+            loz_cut=True
+            if j_max_data >=0:
+                delta_fft_grid[:j_max_data]=self.delta_data[-j_min_data+1:]
+                weight_fft_grid[:j_max_data]=self.weight_data[-j_min_data+1:]
+        if j_max_data >= N_fft:
+            hiz_cut=True
+            if j_min_data < N_fft:
+                delta_fft_grid[j_min_data:]=self.delta_data[:N_fft-j_max_data-1]
+                weight_fft_grid[j_min_data:]=self.weight_data[:N_fft-j_max_data-1]
+        if loz_cut==False and hiz_cut==False:
+            delta_fft_grid[j_min_data:j_max_data+1]=self.delta_data
+            weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
+        
+        weight_fft_grid = weight_fft_grid*mask_fft_grid
+
+        self.delta_fft_grid = delta_fft_grid
+        self.weight_fft_grid = weight_fft_grid
+
+
 
 """
 # get sightlines from the delta file that fall within the fft grid
