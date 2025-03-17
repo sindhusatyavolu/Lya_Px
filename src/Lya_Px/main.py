@@ -116,8 +116,13 @@ class Skewers:
         
         weight_fft_grid = weight_fft_grid*mask_fft_grid
 
-        self.delta_fft_grid = delta_fft_grid
+        self.delta_fft_grid = delta_fft_grid 
         self.weight_fft_grid = weight_fft_grid
+        self.delta_fft = np.fft.fft(self.delta_fft_grid)
+        self.weight_fft = np.fft.fft(self.weight_fft_grid)
+        self.weighted_delta_fft = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid)
+        
+    
 
 
 
