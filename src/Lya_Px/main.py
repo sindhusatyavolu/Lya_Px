@@ -69,7 +69,7 @@ deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/
 file = read_deltas(healpix,deltas_path)
 
 class Skewers:
-    def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, RA, Dec, z_qso):
+    def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, j_min_data,j_max_data, fft_delta,fft_weight,fft_weighted_detla, RA, Dec, z_qso):
         self.wave_data = wave_data
         self.delta_data = delta_data
         self.weight_data = weight_data
@@ -130,14 +130,14 @@ class Skewers:
     
 # get sightlines from the delta file that fall within the fft grid
 skewers = []
-for i in range(len(file)):
-    wave_data = file[i]['wave']
-    delta_data = file[i]['delta']
-    weight_data = file[i]['weight']
-    RA = file[i]['RA']
-    Dec = file[i]['Dec']
-    z_qso = file[i]['z_qso']
-    skewer = Skewers(wave_data, delta_data, weight_data, None, None, RA, Dec, z_qso)
+for hdu in file[1:]:
+    wave_data = hdu.data['wave']
+    delta_data = hdu.data['delta']
+    weight_data = hdu.data['weight']
+    RA = hdu.header['RA']
+    Dec = hdu.header['DEC']
+    z_qso = hdu.header['Z_QSO']
+    skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, None, None, None, RA, Dec, z_qso)
     skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
     skewers.append(skewer)
 
