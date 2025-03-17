@@ -148,6 +148,20 @@ for hdu in file[1:]:
 print(skewers[0].RA,skewers[0].Dec,skewers[0].z_qso)
 N_skewers = len(skewers)
 print('Number of skewers:',N_skewers)
+norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
+
+if P1D:
+    # compute P1D
+    p1d = get_p1d(skewers)
+    p1d_norm = norm_factor*p1d
+    plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
+    plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+    plt.xlabel('k [1/A]')
+    plt.ylabel('P1D [A]')
+    plt.show()
+    plt.savefig('p1d-%d.png'%(healpix))
+    #clear image
+    plt.clf()
 
 
 """
