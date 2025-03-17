@@ -84,7 +84,7 @@ class Skewers:
         self.fft_delta = None
         self.fft_weight = None
         self.fft_weighted_delta = None
-        
+
     def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
         self.weight_data *= (self.wave_data/4500)**3.8
         j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
@@ -128,7 +128,22 @@ class Skewers:
         self.fft_weighted_delta = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid) # fourier space
 
     
+# get sightlines from the delta file that fall within the fft grid
+skewers = []
+for i in range(len(file)):
+    wave_data = file[i]['wave']
+    delta_data = file[i]['delta']
+    weight_data = file[i]['weight']
+    RA = file[i]['RA']
+    Dec = file[i]['Dec']
+    z_qso = file[i]['z_qso']
+    skewer = Skewers(wave_data, delta_data, weight_data, None, None, RA, Dec, z_qso)
+    skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
+    skewers.append(skewer)
 
+print(skewers[0].RA,skewers[0].Dec,skewers[0].z_qso)
+N_skewers = len(skewers)
+print('Number of skewers:',N_skewers)
 
 
 """
