@@ -150,6 +150,8 @@ N_skewers = len(skewers)
 print('Number of skewers:',N_skewers)
 norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
 
+norm_factor_vel = dv/N_fft*1/N_skewers
+
 if P1D:
     # compute P1D
     p1d = get_p1d(skewers)
@@ -174,11 +176,11 @@ px = np.empty((len(theta_min_array),N_fft))
 
 for i in range(len(theta_min_array)):
     px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
-    px[i,:] *= norm_factor
+    #px[i,:] *= norm_factor
 
 if plot_px:
     for i in range(len(theta_min_array)):
-        plt.plot(k[:N_fft//2],px[i,:N_fft//2],label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
+        plt.plot(k[:N_fft//2],px[i,:N_fft//2]*norm_factor,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('$k$ [1/A]')
     plt.ylabel(r'$P_{\times}$ [A]')
@@ -186,10 +188,18 @@ if plot_px:
     plt.show()
     plt.savefig('px-%d-%d-%d-%d-%d-old.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
+if plot_px_vel:
+     for i in range(len(theta_min_array)):
+        plt.plot(k_vel[:N_fft//2],px[i,:N_fft//2]*norm_factor_vel,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
+        plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+        plt.xlabel('$k$ [s/km]')
+        plt.ylabel(r'$P_{\times}$ [km/s]')
+        plt.legend()
+        plt.show()
+        plt.savefig('px-%d-%d-%d-%d-%d-vel.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+
 
 # compute variance
-
-
 
 
 # save the results
