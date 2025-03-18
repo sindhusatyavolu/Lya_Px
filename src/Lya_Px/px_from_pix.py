@@ -32,9 +32,9 @@ def get_px(skewers,theta_min,theta_max):
                 
     # compute the variance of the products
     px_var = np.var(products)
-    px_ave = np.mean(products)
+    px_ave = np.sum(products)
 
-    return px_ft, w_v_m, px_var,px_ave*len(products)
+    return px_ft, w_v_m, px_var,px_ave
 
 
 
