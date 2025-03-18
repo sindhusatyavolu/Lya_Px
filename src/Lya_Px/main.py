@@ -66,8 +66,6 @@ mask_fft_grid[:j_min]=0
 mask_fft_grid[j_max:]=0
 
 # Read inputs
-
-
 deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
 file = read_deltas(healpix,deltas_path)
 
@@ -216,6 +214,5 @@ if plot_px_vel:
 
 # save the results
 outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
-save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights)
-# nfft, variance, average over skewers of square of weighted mask fft grid  
+save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights) # nfft, variance, average over skewers of square of weighted mask fft grid  
 
