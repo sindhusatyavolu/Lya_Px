@@ -181,7 +181,7 @@ assert theta_min_array.size == theta_max_array.size
 px = np.empty((len(theta_min_array),N_fft))
 
 for i in range(len(theta_min_array)):
-    px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])
+    px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[0]
     #px[i,:] *= norm_factor
 
 if plot_px:
