@@ -3,7 +3,11 @@ from config import *
 from auxiliary import *
 
 def get_px(skewers,theta_min,theta_max):    
-    px_ft = np.zeros(N_fft)    
+    px_ft = np.zeros(N_fft)
+    # mean of w_m v_m^* (product of FFT of masks)
+    # w_v_m = (w_m v_m^*).real (product of FFT mask, real part only)
+    w_v_m=np.zeros(N_fft)    
+    
     for i in range(len(skewers)):
         for j in range(i+1,len(skewers)):
             separation_angle = angular_separation(skewers[j].RA,skewers[j].Dec,skewers[i].RA,skewers[i].Dec)
@@ -21,8 +25,11 @@ def get_px(skewers,theta_min,theta_max):
 
                 # compute the products
                 px_ft += (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real
+                w_1_m = np.fft.fft(weight1)
+                w_2_m = np.fft.fft(weight2)
+                w_v_m += (w_1_m*np.conjugate(w_2_m)).real   
 
-    return px_ft
+    return px_ft, w_v_m
 
 
 

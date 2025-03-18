@@ -7,6 +7,8 @@ from functions import *
 from px_from_pix import *
 import sys
 
+import h5py
+
 # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
 wave_desi_N = 5000
 # I know for sure that there is a pixel at 3600A, so let's make sure we cover that one
@@ -205,7 +207,8 @@ if plot_px_vel:
         plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel-selected.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 
-# compute variance
+# compute variance of px in given theta bin
+
 
 
 
