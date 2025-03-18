@@ -24,12 +24,17 @@ def get_px(skewers,theta_min,theta_max):
                 weighted_delta2_ft = np.fft.fft(weighted_delta2)
 
                 # compute the products
-                px_ft += (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real
+                products = weighted_delta1_ft*np.conj(weighted_delta2_ft).real
+                px_ft += products
                 w_1_m = np.fft.fft(weight1)
                 w_2_m = np.fft.fft(weight2)
                 w_v_m += (w_1_m*np.conjugate(w_2_m)).real   
+                
+    # compute the variance of the products
+    px_var = np.var(products)
+    px_ave = np.mean(products)
 
-    return px_ft, w_v_m
+    return px_ft, w_v_m, px_var,px_ave*len(products)
 
 
 
