@@ -179,10 +179,14 @@ theta_max_array = np.array([15,20])*ARCMIN_TO_RAD
 assert theta_min_array.size == theta_max_array.size
 
 px = np.empty((len(theta_min_array),N_fft))
+px_var = np.empty((len(theta_min_array),N_fft))
+px_weights = np.empty((len(theta_min_array),N_fft))
 
 for i in range(len(theta_min_array)):
     px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[0]
     #px[i,:] *= norm_factor
+    px_var[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[2]
+    px_weights[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[1]
     px_sum  = get_px(skewers,theta_min_array[i],theta_max_array[i])[3]
     print(px_sum-px[i,:])
     assert np.allclose(px_sum,px[i,:])
@@ -216,9 +220,7 @@ if plot_px_vel:
 
 # save the results
 outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
-save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers)
-
-#np.savez(out_path+'/'+'px-%d-%.2f-%.2f.npz'%(healpix,z_alpha,dz),k=k[:N_fft//2],px=px[:,:N_fft//2],k_vel=k_vel[:N_fft//2],theta_min=theta_min,theta_max=theta_max)
+save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights)
 
 # nfft, variance, average over skewers of square of weighted mask fft grid  
 
