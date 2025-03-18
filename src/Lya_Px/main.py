@@ -185,6 +185,7 @@ for i in range(len(theta_min_array)):
     #px[i,:] *= norm_factor
     px_sum  = get_px(skewers,theta_min_array[i],theta_max_array[i])[3]
     print(px_sum-px[i,:])
+    assert (px_sum == px[i,:]).all()
 
 if plot_px:
     for i in range(len(theta_min_array)):
