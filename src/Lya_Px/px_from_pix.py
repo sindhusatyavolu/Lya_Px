@@ -24,7 +24,7 @@ def get_px(skewers,theta_min,theta_max):
                 weighted_delta2_ft = np.fft.fft(weighted_delta2)
 
                 # compute the products
-                products = weighted_delta1_ft*np.conj(weighted_delta2_ft).real
+                products = (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real
                 px_ft += products
                 w_1_m = np.fft.fft(weight1)
                 w_2_m = np.fft.fft(weight2)
