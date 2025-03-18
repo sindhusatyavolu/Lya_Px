@@ -197,7 +197,7 @@ if plot_px_vel:
         plt.plot(k_vel[:N_fft//2],(k_vel[:N_fft//2]*px[i,:N_fft//2]*norm_factor_vel)/np.pi,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
         plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
         plt.xscale('log')
-        plt.yscale('log')
+        #plt.yscale('log')
         plt.xlabel('$k$ [s/km]')
         plt.ylabel(r'$kP_{\times}/\pi$')
         plt.legend()
