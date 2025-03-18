@@ -22,6 +22,8 @@ if len(sys.argv) != 5:
 
 z_alpha = float(sys.argv[1]) # redshift bin center
 dz = float(sys.argv[2]) # redshift bin width
+healpix = int(sys.argv[3]) # healpix pixel
+out_path = str(sys.argv[4]) # output path
 
 # figure out the center of the bin and its edges, in observed wavelength
 lam_cen = LAM_LYA*(1+z_alpha)
@@ -63,7 +65,6 @@ mask_fft_grid[j_max:]=0
 
 # Read inputs
 
-healpix = int(sys.argv[3])
 
 deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
 file = read_deltas(healpix,deltas_path)
@@ -201,14 +202,13 @@ if plot_px_vel:
         plt.ylabel(r'$kP_{\times}/\pi$')
         plt.legend()
         plt.show()
-        plt.savefig('px-%d-%d-%d-%d-%d-vel.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+        plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 
 # compute variance
 
 
-# save the results
-out_path = str(sys.argv[4])
+
 #np.savez(out_path+'/'+'px-%d-%.2f-%.2f.npz'%(healpix,z_alpha,dz),k=k[:N_fft//2],px=px[:,:N_fft//2],k_vel=k_vel[:N_fft//2],theta_min=theta_min,theta_max=theta_max)
 
 # nfft, variance, average over skewers of square of weighted mask fft grid  
