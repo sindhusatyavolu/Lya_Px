@@ -211,6 +211,9 @@ if plot_px_vel:
 
 
 
+# save the results
+outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
+save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv)
 
 #np.savez(out_path+'/'+'px-%d-%.2f-%.2f.npz'%(healpix,z_alpha,dz),k=k[:N_fft//2],px=px[:,:N_fft//2],k_vel=k_vel[:N_fft//2],theta_min=theta_min,theta_max=theta_max)
 
