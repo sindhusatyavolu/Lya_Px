@@ -4,7 +4,7 @@ from config import *
 import matplotlib.pyplot as plt
 
 path = str(sys.argv[1]) 
-
+output_path = str(sys.argv[2])
 
 k_arr = np.load(path)['k'] # in 1/A
 px = np.load(path)['px'] # in A
@@ -24,7 +24,7 @@ def Binning(k):
 
 # plot bin function 
 plt.plot(k_arr, Binning(k_arr))
-plt.savefig('%s/bin_func.png'%(path),dpi=400,bbox_inches='tight')
+plt.savefig('%s/bin_func.png'%(output_path),dpi=400,bbox_inches='tight')
 plt.show()
 
 # Plot Px
