@@ -50,7 +50,6 @@ k_indices = np.digitize(k_arr,k_bins) -1
 # bin the power spectrum
 px_binned = np.zeros(N_bins)
 for i in range(N_bins):
-    print(px[0][k_indices==i])
     px_binned[i] = np.mean(px[0][k_indices==i])
 
 # Plot Px
