@@ -10,31 +10,23 @@ k_arr = np.load(path)['k'] # in 1/A
 px = np.load(path)['px'] # in A
 karr_v = np.load(path)['k_vel'] # in s/km
 
-# bin power spectrum
-pos_k = k_arr[:N_fft//2]
-k_bins, bin_edges = np.histogram(pos_k,bins=N_fft//4) #np.linspace(pos_k.min(),pos_k.max(),20)
-print(k_bins,bin_edges,'bins')
+# Define a binning function 
 
-# Digitize k values to find bin indices
-bin_indices = np.digitize(pos_k, bin_edges) - 1 
+def Binning(k):
+    width = 10 # in 1/A
+    period = 2*width
+    # periodic window function with given width and period = twice the width
+    bin_func = np.zeros(len(k))
+    for i in range(len(k)):
+        if k[i] % period < width:
+            bin_func[i] = 1
+    return bin_func
 
-print(bin_edges[bin_indices[0]],'<', pos_k[1],'<',bin_edges[bin_indices[2]])
-
-# Take moving average of Pk in each k bin
-Pbins = np.zeros(len(bin_edges))
-for n in range(len(bin_edges)):
-    Pbins[n] = np.mean(px[bin_indices==n])
-
-# Plot the binned power spectrum
-plt.plot(k_arr, px, label='Unbinned')
-plt.plot(bin_edges, Pbins, label='Binned')
-plt.xlabel('k [1/A]')
-plt.ylabel('P(k) [A]')
-plt.legend()
+# plot bin function 
+plt.plot(k_arr, Binning(k_arr))
 plt.show()
-#plt.savefig('binned_px.png')
 
-
+# Plot Px
 
 
 # compare with forestflow 
