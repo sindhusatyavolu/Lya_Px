@@ -52,7 +52,7 @@ for i in range(N_bins):
     px_binned[i] = np.mean(px[0][k_indices==i])
 
 # Plot Px
-plt.plot(k_arr,px,label='Px')
+plt.plot(k_arr,px[0],label='Px')
 plt.plot(k_bins,px_binned,'o',label='Px binned')
 plt.savefig(output_path+'binned_px_comp.png')
 plt.show()
