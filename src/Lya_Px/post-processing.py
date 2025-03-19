@@ -24,6 +24,7 @@ def Binning(k):
 
 # plot bin function 
 plt.plot(k_arr, Binning(k_arr))
+plt.savefig(path+'bin_func.png')
 plt.show()
 
 # Plot Px
