@@ -6,9 +6,19 @@ import matplotlib.pyplot as plt
 path = str(sys.argv[1]) 
 output_path = str(sys.argv[2])
 
-k_arr = np.load(path)['k'] # in 1/A
-px = np.load(path)['px'] # in A
-karr_v = np.load(path)['k_vel'] # in s/km
+# read hdf5 file
+f = h5py.File(path, 'r')
+px = f['px']
+k_arr = f['k_arr']
+theta_min_array = f['theta_min']
+theta_max_array = f['theta_max']
+N_fft = f.attrs['N_fft']
+dvel = f.attrs['dvel']
+N_skewers = f.attrs['N_skewers']
+px_var = f['px_var']
+px_weights = f['px_weights']
+p1d = f['p1d']
+
 
 # simple binning of the power spectrum
 N_bins = 4
