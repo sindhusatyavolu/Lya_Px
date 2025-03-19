@@ -20,7 +20,7 @@ def wave_to_velocity(wave):
 # anglular separation to transverse distance conversion
 
 # save outputs
-def save_to_hdf5(filename,px,k_arr,theta_min_array,theta_max_array,N_fft,dvel,N_skewers,px_var,px_weights):
+def save_to_hdf5(filename,px,k_arr,theta_min_array,theta_max_array,N_fft,dvel,N_skewers,px_var,px_weights,p1d):
     with h5py.File(filename, 'w') as f:
         # shared data
         f.create_dataset('k_arr', data=k_arr)
@@ -29,6 +29,8 @@ def save_to_hdf5(filename,px,k_arr,theta_min_array,theta_max_array,N_fft,dvel,N_
         f.attrs['N_fft'] = N_fft
         f.attrs['dvel'] = dvel
         f.attrs['N_skewers'] = N_skewers
+
+        f.create_dataset('p1d',data=p1d)
         
         # group for each theta bin
         for i in range(len(px)):

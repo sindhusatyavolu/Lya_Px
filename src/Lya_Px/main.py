@@ -156,6 +156,7 @@ norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
 
 norm_factor_vel = dv/N_fft*1/N_skewers
 
+p1d = None
 if P1D:
     # compute P1D
     p1d = get_p1d(skewers)
@@ -214,5 +215,5 @@ if plot_px_vel:
 
 # save the results
 outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
-save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights) # nfft, variance, average over skewers of square of weighted mask fft grid  
+save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights,p1d) # nfft, variance, average over skewers of square of weighted mask fft grid  
 

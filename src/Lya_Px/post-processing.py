@@ -9,52 +9,26 @@ output_path = str(sys.argv[2])
 k_arr = np.load(path)['k'] # in 1/A
 px = np.load(path)['px'] # in A
 karr_v = np.load(path)['k_vel'] # in s/km
+p1d = np.load(path)['p1d'] # in A
 
-# define full length of FFT grid (in Angstroms)
-L_fft=N_fft*pw_A
-# we will rebin the wavenumbers to make them more independent, and better measured
-k0_fft=2*np.pi/L_fft
-dk_bin=k0_fft*4
-print('dk =',dk_bin)
-# stop roughly at 1/4 of the Nyquist frequency for now (equivalent to rebinning 4 pixels)
-k_Ny_fft=np.pi/pw_A
-k_max=k_Ny_fft/4
-print('k < ',k_max)
-k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
-Nk=k_edges.size-1
-print('Nk =',Nk)
+# simple binning of the power spectrum
+N_bins = 4
+dk = (k_arr[-1]-k_arr[0])/N_bins
+k_bins  = np.arange(k_arr[0],k_arr[-1]+dk,dk)
 
-# Define a binning function for each k value
-B_m=np.zeros([Nk,N_fft//2])
-for i in range(Nk):
-    inbin=(abs(k_arr)>k_edges[i]) & (abs(k_arr)<k_edges[i+1])
-    B_m[i,inbin]=1 
+# find indices where the k values are in the bins
+k_indices = np.digitize(k_arr,k_bins)
 
-# mean wavenumber in each bin (without weights)
-k_A=np.zeros(Nk)
-for i in range(Nk):
-    k_A[i]=np.sum(B_m[i]*abs(k_arr))/np.sum(B_m[i])
-
-plt.plot(k_arr[:N_fft//2],B_m[0][:N_fft//2],color='blue')
-plt.axvline(x=k_A[0],color='blue',ls=':')
-plt.plot(k_arr[:N_fft//2],B_m[5][:N_fft//2],color='red')
-plt.axvline(x=k_A[5],color='red',ls=':')
-plt.axhline(y=0,color='black')
-
-#plt.legend()
-plt.xlim([0,1.2*k_A[10]])
-plt.ylim([0,1])
-plt.xlabel('k')
-plt.ylabel('B_m')
-
-# plot bin function 
-#plt.plot(k_arr, Binning(k_arr))
-plt.savefig('%s/bin_func_new.png'%(output_path))
-plt.show()
+# bin the power spectrum
+px_binned = np.zeros(N_bins)
+for i in range(N_bins):
+    px_binned[i] = np.mean(px[k_indices==i])
 
 # Plot Px
-
-
+plt.plot(k_arr,px,label='Px')
+plt.plot(k_bins,px_binned,'o',label='Px binned')
+plt.savefig(output_path+'binned_px_comp.png')
+plt.show()
 # compare with forestflow 
 
 

@@ -12,8 +12,7 @@ pw_A = 0.8 # pixel width in Angstrom
 P1D = False
 plot_px = False
 plot_px_vel = True
-
-
+bin_px = True
 
 
 
