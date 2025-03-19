@@ -9,7 +9,6 @@ output_path = str(sys.argv[2])
 k_arr = np.load(path)['k'] # in 1/A
 px = np.load(path)['px'] # in A
 karr_v = np.load(path)['k_vel'] # in s/km
-p1d = np.load(path)['p1d'] # in A
 
 # simple binning of the power spectrum
 N_bins = 4
