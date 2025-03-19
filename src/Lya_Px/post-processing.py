@@ -25,7 +25,7 @@ Nk=k_edges.size-1
 print('Nk =',Nk)
 
 # Define a binning function for each k value
-B_m=np.zeros([Nk,N_fft])
+B_m=np.zeros([Nk,N_fft//2])
 for i in range(Nk):
     inbin=(abs(k_arr)>k_edges[i]) & (abs(k_arr)<k_edges[i+1])
     B_m[i,inbin]=1 
