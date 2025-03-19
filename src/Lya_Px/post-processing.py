@@ -13,7 +13,7 @@ karr_v = np.load(path)['k_vel'] # in s/km
 # Define a binning function 
 
 def Binning(k):
-    width = 10 # in 1/A
+    width = 1 # in 1/A
     period = 2*width
     # periodic window function with given width and period = twice the width
     bin_func = np.zeros(len(k))
@@ -24,7 +24,7 @@ def Binning(k):
 
 # plot bin function 
 plt.plot(k_arr, Binning(k_arr))
-plt.savefig(path+'bin_func.png')
+plt.savefig('%s/bin_func.png'%(path),dpi)
 plt.show()
 
 # Plot Px
