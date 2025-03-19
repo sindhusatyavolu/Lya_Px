@@ -37,6 +37,7 @@ px = np.array(px)
 px_var = np.array(px_var)
 px_weights = np.array(px_weights)
 
+print(np.shape(px))
 
 # simple binning of the power spectrum
 N_bins = 4
