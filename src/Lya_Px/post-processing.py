@@ -48,13 +48,17 @@ k_bins  = np.linspace(k_arr[0], k_arr[-1], N_bins + 1)
 k_indices = np.digitize(k_arr,k_bins) -1 
 
 # bin the power spectrum
-px_binned = np.zeros(N_bins+1)
+px_binned = np.zeros((len(theta_bins),N_bins+1))
 for i in range(N_bins+1):
-    px_binned[i] = np.mean(px[0][k_indices==i])
+    for j in range(len(theta_bins)):
+        px_binned[j,i] = np.mean(px[j][k_indices==i])
 
 # Plot Px
-plt.plot(k_arr,px[0],label='Px')
-plt.plot(k_bins,px_binned,label='Px binned')
+for j in range(len(theta_bins)):
+    plt.plot(k_arr,px[j],label='Px %f-%f'%(theta_bins[j][0]*RAD_TO_ARCMIN,theta_bins[j][1]*RAD_TO_ARCMIN))
+    plt.plot(k_bins,px_binned[j],label='Px binned %f-%f'%(theta_bins[j][0]*RAD_TO_ARCMIN,theta_bins[j][1]*RAD_TO_ARCMIN))
+#plt.plot(k_arr,px[0],label='Px')
+#plt.plot(k_bins,px_binned,label='Px binned')
 plt.xlabel('k [1/A]')
 plt.ylabel('Px')
 plt.legend()
