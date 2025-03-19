@@ -48,8 +48,8 @@ k_bins  = np.linspace(k_arr[0], k_arr[-1], N_bins + 1)
 k_indices = np.digitize(k_arr,k_bins) -1 
 
 # bin the power spectrum
-px_binned = np.zeros(N_bins)
-for i in range(N_bins):
+px_binned = np.zeros(N_bins+1)
+for i in range(N_bins+1):
     px_binned[i] = np.mean(px[0][k_indices==i])
 
 # Plot Px
