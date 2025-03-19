@@ -27,7 +27,7 @@ print('Nk =',Nk)
 # Define a binning function for each k value
 B_m=np.zeros([Nk,N_fft])
 for i in range(Nk):
-    inbin=(abs(k)>k_edges[i]) & (abs(k)<k_edges[i+1])
+    inbin=(abs(k_arr)>k_edges[i]) & (abs(k_arr)<k_edges[i+1])
     B_m[i,inbin]=1 
 
 # mean wavenumber in each bin (without weights)
