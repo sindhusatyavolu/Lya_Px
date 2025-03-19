@@ -35,9 +35,9 @@ k_A=np.zeros(Nk)
 for i in range(Nk):
     k_A[i]=np.sum(B_m[i]*abs(k_arr))/np.sum(B_m[i])
 
-plt.plot(k[:N_fft//2],B_m[0][:N_fft//2],color='blue')
+plt.plot(k_arr[:N_fft//2],B_m[0][:N_fft//2],color='blue')
 plt.axvline(x=k_A[0],color='blue',ls=':')
-plt.plot(k[:N_fft//2],B_m[5][:N_fft//2],color='red')
+plt.plot(k_arr[:N_fft//2],B_m[5][:N_fft//2],color='red')
 plt.axvline(x=k_A[5],color='red',ls=':')
 plt.axhline(y=0,color='black')
 
