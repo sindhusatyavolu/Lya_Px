@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from config import *
 import matplotlib.pyplot as plt
+import h5py
 
 path = str(sys.argv[1]) 
 output_path = str(sys.argv[2])
