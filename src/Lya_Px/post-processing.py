@@ -60,7 +60,7 @@ for j in range(len(theta_bins)):
 #plt.plot(k_arr,px[0],label='Px')
 #plt.plot(k_bins,px_binned,label='Px binned')
 plt.xlabel('k [1/A]')
-plt.ylabel('Px')
+plt.ylabel('Px [A]')
 plt.legend()
 plt.savefig(output_path+'binned_px_comp.png')
 plt.show()
