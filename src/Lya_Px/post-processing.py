@@ -55,7 +55,10 @@ for i in range(N_bins):
 
 # Plot Px
 plt.plot(k_arr,px[0],label='Px')
-plt.plot(k_bins,px_binned,'o',label='Px binned')
+plt.plot(k_bins,px_binned,label='Px binned')
+plt.xlabel('k [1/A]')
+plt.ylabel('Px')
+plt.legend()
 plt.savefig(output_path+'binned_px_comp.png')
 plt.show()
 # compare with forestflow 
