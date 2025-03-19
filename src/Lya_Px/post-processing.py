@@ -13,7 +13,8 @@ karr_v = np.load(path)['k_vel'] # in s/km
 # Define a binning function 
 
 def Binning(k):
-    width = 1 # in 1/A
+    width = (k[-1]-k[0])/4 # in 1/A
+    print('Width:',width)
     period = 2*width
     # periodic window function with given width and period = twice the width
     bin_func = np.zeros(len(k))
