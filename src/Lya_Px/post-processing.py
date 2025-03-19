@@ -42,7 +42,7 @@ print(np.shape(px))
 # simple binning of the power spectrum
 N_bins = 4
 dk = (k_arr[-1]-k_arr[0])/N_bins
-k_bins  = np.arange(k_arr[0],k_arr[-1],dk)
+k_bins  = np.linspace(k_arr[0], k_arr[-1], N_bins + 1)
 
 # find indices where the k values are in the bins
 k_indices = np.digitize(k_arr,k_bins) -1 
