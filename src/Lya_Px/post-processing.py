@@ -46,6 +46,7 @@ k_bins  = np.arange(k_arr[0],k_arr[-1],dk)
 
 # find indices where the k values are in the bins
 k_indices = np.digitize(k_arr,k_bins)
+print(k_indices)
 
 # bin the power spectrum
 px_binned = np.zeros(N_bins)
