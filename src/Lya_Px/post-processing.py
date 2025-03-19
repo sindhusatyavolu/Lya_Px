@@ -11,8 +11,8 @@ output_path = str(sys.argv[2])
 
 with h5py.File(path, 'r') as f:
     # Load shared datasets
-    k_arr = f['k_arr'][:]
-    p1d = f['p1d'][:]
+    k_arr = f['k_arr'][:N_fft//2]
+    p1d = f['p1d'][:N_fft//2]
 
     # Load attributes
     N_fft = f.attrs['N_fft']
