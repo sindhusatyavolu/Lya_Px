@@ -33,9 +33,9 @@ with h5py.File(path, 'r') as f:
             px_weights.append(g['px_weights'][:])
             theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
 
-px = np.array(px)[:N_fft//2]
-px_var = np.array(px_var)[:N_fft//2]
-px_weights = np.array(px_weights)[:N_fft//2]
+px = np.array(px)[,:N_fft//2]
+px_var = np.array(px_var)[,:N_fft//2]
+px_weights = np.array(px_weights)[,:N_fft//2]
 
 print(np.shape(px))
 
