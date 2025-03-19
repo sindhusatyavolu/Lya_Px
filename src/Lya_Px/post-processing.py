@@ -8,17 +8,34 @@ path = str(sys.argv[1])
 output_path = str(sys.argv[2])
 
 # read hdf5 file
-f = h5py.File(path, 'r')
-px = f['px']
-k_arr = f['k_arr']
-theta_min_array = f['theta_min']
-theta_max_array = f['theta_max']
-N_fft = f.attrs['N_fft']
-dvel = f.attrs['dvel']
-N_skewers = f.attrs['N_skewers']
-px_var = f['px_var']
-px_weights = f['px_weights']
-p1d = f['p1d']
+
+with h5py.File(path, 'r') as f:
+    # Load shared datasets
+    k_arr = f['k_arr'][:]
+    p1d = f['p1d'][:]
+
+    # Load attributes
+    N_fft = f.attrs['N_fft']
+    dvel = f.attrs['dvel']
+    N_skewers = f.attrs['N_skewers']
+
+    # Loop over all theta groups
+    px = []
+    px_var = []
+    px_weights = []
+    theta_bins = []
+
+    for key in f.keys():
+        if key.startswith('theta_'):
+            g = f[key]
+            px.append(g['px'][:])
+            px_var.append(g['px_var'][:])
+            px_weights.append(g['px_weights'][:])
+            theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
+
+px = np.array(px)
+px_var = np.array(px_var)
+px_weights = np.array(px_weights)
 
 
 # simple binning of the power spectrum
@@ -32,7 +49,7 @@ k_indices = np.digitize(k_arr,k_bins)
 # bin the power spectrum
 px_binned = np.zeros(N_bins)
 for i in range(N_bins):
-    px_binned[i] = np.mean(px[k_indices==i])
+    px_binned[i] = np.mean(px[0][k_indices==i])
 
 # Plot Px
 plt.plot(k_arr,px,label='Px')
