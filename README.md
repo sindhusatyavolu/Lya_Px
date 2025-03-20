@@ -22,6 +22,6 @@ The list of dependencies required are listed in pyproject.toml. For versions use
 # For measuring the cross power spectrum
 
 Run the command:
-<pre> python -m Lya_Px.main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> </pre>
+``` bash python -m Lya_Px.main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> ```
 
 
