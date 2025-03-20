@@ -1,0 +1,6 @@
+theta_min theta_max
+0 1
+5 10
+10 15
+15 20
+

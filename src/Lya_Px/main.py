@@ -27,9 +27,10 @@ dz = float(sys.argv[2]) # redshift bin width
 healpix = int(sys.argv[3]) # healpix pixel
 out_path = str(sys.argv[4]) # output path
 
-# create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
-theta_min_array = np.array([0,5,10,15])*ARCMIN_TO_RAD
-theta_max_array = np.array([1,10,15,20])*ARCMIN_TO_RAD
+# read theta values from file with first column as theta_min and second column as theta_max
+theta_array = np.loadtxt('theta_values.txt',skiprows=1)
+theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
+theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD
 
 assert theta_min_array.size == theta_max_array.size
 
@@ -64,11 +65,12 @@ mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
 # while we use i to refer to indices in the global (desi) grid, we use j to refer to the FFT grid of this redshift
 j_cen = round((lam_cen-wave_fft_grid[0])/pw_A) 
 # this should alway be N_fft/2
-print(j_cen, N_fft//2)
+assert j_cen==N_fft//2
+
 # figure out the indices (in the FFT grid) that fall within the redshift bin (top hat binning)
 j_min = round((lam_min-wave_fft_grid[0])/pw_A)
 j_max = round((lam_max-wave_fft_grid[0])/pw_A)
-print(j_min,j_max)
+#print(j_min,j_max)
 mask_fft_grid[:j_min]=0
 mask_fft_grid[j_max:]=0
 
@@ -90,8 +92,8 @@ class Skewers:
 
         self.delta_fft_grid = delta_fft_grid
         self.weight_fft_grid = weight_fft_grid
-        self.j_min_data = None
-        self.j_max_data = None
+        self.j_min_data = j_min_data
+        self.j_max_data = j_max_data
     
     def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
         
@@ -109,7 +111,7 @@ class Skewers:
             print('Data grid is larger than FFT grid, increase N_fft')
             exit(1)
 
-        # figure out whether the spectrum is cut at low-z or at high-z
+        # figure out whether the spectrum is cut at low-z or at high-z.  S: what is the purporse of knowing high-z cut and low-z cut? this is the time limiting step
         loz_cut=False
         hiz_cut=False
         if j_min_data < 0:
@@ -150,24 +152,24 @@ for hdu in file[1:]:
     skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
     skewers.append(skewer)
 
+# check that the first skewer is mapped correctly
 print(skewers[0].RA,skewers[0].Dec,skewers[0].z_qso)
+
 N_skewers = len(skewers)
 print('Number of skewers:',N_skewers)
 norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
-
 norm_factor_vel = dv/N_fft*1/N_skewers
 
-p1d = None
+# compute P1D
+p1d = get_p1d(skewers)
+p1d_norm = norm_factor*p1d
 if P1D:
-    # compute P1D
-    p1d = get_p1d(skewers)
-    p1d_norm = norm_factor*p1d
     plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
     plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
     plt.xlabel('k [1/A]')
     plt.ylabel('P1D [A]')
+    #plt.savefig('p1d-%d.png'%(healpix))
     plt.show()
-    plt.savefig('p1d-%d.png'%(healpix))
     #clear image
     plt.clf()
 
@@ -179,8 +181,8 @@ px_weights = np.empty((len(theta_min_array),N_fft))
 for i in range(len(theta_min_array)):
     px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[0]
     #px[i,:] *= norm_factor
-    px_var[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[2]
     px_weights[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[1]
+    px_var[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[2]
     px_sum  = get_px(skewers,theta_min_array[i],theta_max_array[i])[3]
     print(px_sum-px[i,:])
     assert np.allclose(px_sum,px[i,:])
@@ -193,7 +195,7 @@ if plot_px:
     plt.ylabel(r'$P_{\times}$ [A]')
     plt.legend()
     plt.show()
-    plt.savefig('px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+    #plt.savefig('px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 if plot_px_vel:
      for i in range(len(theta_min_array)):
@@ -205,7 +207,7 @@ if plot_px_vel:
         plt.ylabel(r'$kP_{\times}/\pi$')
         plt.legend()
         plt.show()
-        plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel-selected.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+        #plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel-selected.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
 
 
 # save the results

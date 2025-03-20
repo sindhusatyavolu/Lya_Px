@@ -43,7 +43,9 @@ px_weights = np.array(px_weights)
 
 print(np.shape(px))
 
+# S: I find the binning here a bit complicated. Not sure I understand how it's useful. See the commented code at the end for the binning I implemented.
 
+""" Binning of the power spectrum """
 # define full length of FFT grid (in Angstroms)
 L_fft=N_fft*pw_A
 # we will rebin the wavenumbers to make them more independent, and better measured
@@ -187,8 +189,7 @@ plt.show()
 
 # compare with forestflow 
 
-
-
+# compute covariance matrix of the binned power spectrum
 
 
 """
