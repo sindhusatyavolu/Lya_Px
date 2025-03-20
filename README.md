@@ -19,10 +19,26 @@ The list of dependencies required are listed in pyproject.toml. For versions use
 
 ## Usage
 
-# For measuring the cross power spectrum
+### For measuring the cross power spectrum
 
 Run the command:
 
 ```python -m Lya_Px.main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> ```
+
+Takes as inputs the redshift of the bin center, redshift bin size, healpix pixel number, desired location of the outputs, and location of the file containing theta bins where you want to measure Px.
+
+Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alternatively, the python script to read it can be found in post-processing.py
+
+### Post-processing the Px measurement
+
+Primarily includes binning and plot. Usage:
+
+```python -m Lya_Px.post_processing <output_path> <plot_directory>```
+
+Takes as input the path to the Px file and the directory where you want to save any outputs.
+
+
+
+
 
 
