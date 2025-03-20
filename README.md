@@ -12,4 +12,7 @@ cd Lya_PxEC </pre>
 <pre>python3 -m venv venv
 source venv/bin/activate</pre>
 
+## Install package in editable mode
+<pre>pip install -e .</pre>
+
 The list of dependencies required are listed in requirements.txt
