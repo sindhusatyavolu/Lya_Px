@@ -7,9 +7,16 @@ from Lya_Px.config import *
 def main():
     show_plots = 0
     plot_p1d = False
+    
+    parser = argparse.ArgumentParser(description="Postprocessing Px files")
 
-    path = str(sys.argv[1]) 
-    output_path = str(sys.argv[2])
+    parser.add_argument("--path_to_px_file", type=str, required=True,
+                        help="Path to Px hdf5 file (e.g., /path/to/px.hdf5)")
+    parser.add_argument("--output_path", type=str, required=True,help="Path to output directory where plots etc will be saved")
+
+
+    path = args.path_to_px_file 
+    output_path = args.output_path
 
     # read hdf5 file
     with h5py.File(path, 'r') as f:

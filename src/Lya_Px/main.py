@@ -19,13 +19,12 @@ def main():
     wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
 
     parser = argparse.ArgumentParser(description="Run Lyman alpha cross power spectrum analysis with given parameters.")
-    # Positional arguments (required)
+    
+    # All required arguments
     parser.add_argument("redshift", type=float, help="Redshift value (e.g., 2.2)")
     parser.add_argument("redshift_bin", type=float, help="Redshift bin width (e.g., 0.2)")
     parser.add_argument("healpix", type=int, help="Healpix pixel number (e.g., 500)")
     parser.add_argument("output_path", type=str, help="Directory to save output files")
-    
-    # Optional (or required) argument for theta file; here we require it explicitly.
     parser.add_argument("--theta_file", type=str, required=True,
                         help="Path to theta_values.txt file (e.g., /path/to/theta_values.txt)")
 
