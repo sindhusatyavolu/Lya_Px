@@ -15,7 +15,8 @@ dependencies = [
     "numpy",
     "matplotlib",
     "astropy",
-    "h5py"
+    "h5py",
+    "argparse"
 ]
 
 [project.scripts]
