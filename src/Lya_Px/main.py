@@ -1,15 +1,14 @@
+  import numpy as np
+from astropy.io import fits
+import matplotlib.pyplot as plt
+import sys
+import h5py
+
+from config import *
+from functions import *
+from px_from_pix import *
+
 def main():
-    import numpy as np
-    from astropy.io import fits
-    import matplotlib.pyplot as plt
-    import sys
-    import h5py
-
-    from config import *
-    from functions import *
-    from px_from_pix import *
-
-
     # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
     wave_desi_N = 5000
     # I know for sure that there is a pixel at 3600A, so let's make sure we cover that one

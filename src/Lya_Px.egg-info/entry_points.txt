@@ -1,0 +1,3 @@
+[console_scripts]
+lyapx-main = Lya_Px.main:main
+lyapx-post = Lya_Px.post_processing:main
