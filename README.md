@@ -5,7 +5,7 @@ Lyman alpha forest cross power spectrum estimator code
 
 First, clone the repository to your local directory
 
-<pre> ``` git clone https://github.com/sindhusatyavolu/Lya_PxEC.git 
-cd Lya_PxEC ```</pre>
+<pre> git clone https://github.com/sindhusatyavolu/Lya_PxEC.git 
+cd Lya_PxEC </pre>
 
 The list of dependencies required are listed in requirements.txt
