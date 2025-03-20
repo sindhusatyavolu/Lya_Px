@@ -10,9 +10,9 @@ def get_px(skewers,theta_min,theta_max):
     products = []
 
     for i in range(len(skewers)):
-        for j in range(i+1,len(skewers)):
+        for j in range(i,len(skewers)):
             separation_angle = angular_separation(skewers[j].RA,skewers[j].Dec,skewers[i].RA,skewers[i].Dec)
-            if separation_angle>theta_min and separation_angle<theta_max:
+            if separation_angle>=theta_min and separation_angle<=theta_max:
                 delta1 = skewers[i].delta_fft_grid
                 delta2 = skewers[j].delta_fft_grid
                 weight1 = skewers[i].weight_fft_grid

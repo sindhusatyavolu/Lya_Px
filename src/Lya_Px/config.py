@@ -11,7 +11,7 @@ N_fft = 2**n
 pw_A = 0.8 # pixel width in Angstrom
 P1D = True
 plot_px = False
-plot_px_vel = True
+plot_px_vel = False
 bin_px = True
 
 

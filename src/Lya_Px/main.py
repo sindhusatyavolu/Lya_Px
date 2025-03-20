@@ -7,6 +7,7 @@ from functions import *
 from px_from_pix import *
 import sys
 
+
 import h5py
 
 # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
@@ -26,6 +27,13 @@ z_alpha = float(sys.argv[1]) # redshift bin center
 dz = float(sys.argv[2]) # redshift bin width
 healpix = int(sys.argv[3]) # healpix pixel
 out_path = str(sys.argv[4]) # output path
+
+# create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
+theta_min_array = np.array([0,5,10,15])*ARCMIN_TO_RAD
+theta_max_array = np.array([1,10,15,20])*ARCMIN_TO_RAD
+
+assert theta_min_array.size == theta_max_array.size
+
 
 # figure out the center of the bin and its edges, in observed wavelength
 lam_cen = LAM_LYA*(1+z_alpha)
@@ -66,7 +74,8 @@ mask_fft_grid[:j_min]=0
 mask_fft_grid[j_max:]=0
 
 # Read inputs
-deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
+#deltas_path = '/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
+deltas_path = '/Users/ssatyavolu/projects/DESI/Y3_Lya_Px/'
 file = read_deltas(healpix,deltas_path)
 
 class Skewers:
@@ -85,10 +94,9 @@ class Skewers:
         self.fft_delta = None
         self.fft_weight = None
         self.fft_weighted_delta = None
-
+        self.weight_data *= (self.wave_data/4500)**3.8 
+    
     def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
-        
-        self.weight_data *= (self.wave_data/4500)**3.8
         
         j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
         j_max_data=round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
@@ -170,11 +178,6 @@ if P1D:
     #clear image
     plt.clf()
 
-# create a 2d array of theta_min and theta_max values corresponding to theta bin in which Px will be measured
-theta_min_array = np.array([0,5,10,15])*ARCMIN_TO_RAD
-theta_max_array = np.array([5,10,15,20])*ARCMIN_TO_RAD
-
-assert theta_min_array.size == theta_max_array.size
 
 px = np.empty((len(theta_min_array),N_fft))
 px_var = np.empty((len(theta_min_array),N_fft))
