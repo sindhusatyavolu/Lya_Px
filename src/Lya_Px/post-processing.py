@@ -177,8 +177,6 @@ plt.show()
 # compare with forestflow 
 
 
-
-
 """
 # simple binning of the power spectrum
 N_bins = 4

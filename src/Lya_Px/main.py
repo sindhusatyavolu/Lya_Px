@@ -1,14 +1,13 @@
 import numpy as np
 from astropy.io import fits
 import matplotlib.pyplot as plt
+import sys
+import h5py
 
 from config import *
 from functions import *
 from px_from_pix import *
-import sys
 
-
-import h5py
 
 # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
 wave_desi_N = 5000
@@ -79,10 +78,12 @@ deltas_path = '/Users/ssatyavolu/projects/DESI/Y3_Lya_Px/'
 file = read_deltas(healpix,deltas_path)
 
 class Skewers:
-    def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, j_min_data,j_max_data, fft_delta,fft_weight,fft_weighted_detla, RA, Dec, z_qso):
+    def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, j_min_data,j_max_data, RA, Dec, z_qso):
         self.wave_data = wave_data
         self.delta_data = delta_data
         self.weight_data = weight_data
+        self.weight_data *= (self.wave_data/4500)**3.8 
+
         self.RA = RA
         self.Dec = Dec
         self.z_qso = z_qso
@@ -91,10 +92,6 @@ class Skewers:
         self.weight_fft_grid = weight_fft_grid
         self.j_min_data = None
         self.j_max_data = None
-        self.fft_delta = None
-        self.fft_weight = None
-        self.fft_weighted_delta = None
-        self.weight_data *= (self.wave_data/4500)**3.8 
     
     def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
         
@@ -134,10 +131,6 @@ class Skewers:
         self.delta_fft_grid = delta_fft_grid  # real space 
         self.weight_fft_grid = weight_fft_grid # real space 
         
-        self.fft_delta = np.fft.fft(self.delta_fft_grid) # fourier space
-        self.fft_weight = np.fft.fft(self.weight_fft_grid) # fourier space
-        self.fft_weighted_delta = np.fft.fft(self.delta_fft_grid*self.weight_fft_grid) # fourier space
-
    
 # get sightlines from the delta file and map them to the FFT grid
 skewers = []
@@ -153,7 +146,7 @@ for hdu in file[1:]:
     if wave_data[-1]<lam_min or wave_data[0]>lam_max:
         continue
 
-    skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, None, None, None, RA, Dec, z_qso)
+    skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, RA, Dec, z_qso)
     skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
     skewers.append(skewer)
 

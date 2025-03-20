@@ -11,7 +11,7 @@ def read_deltas(healpix,deltas_path):
 def get_p1d(skewers):
     p1d = np.zeros(N_fft)
     for skewer in skewers:
-        wighted_delta_ft = skewer.fft_weighted_delta
+        wighted_delta_ft = np.fft.fft(skewer.delta_fft_grid * skewer.weight_fft_grid)
         p1d += np.abs(wighted_delta_ft)**2
     return p1d
 
