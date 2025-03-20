@@ -6,6 +6,7 @@ import h5py
 from Lya_Px.config import *
 from Lya_Px.functions import *
 from Lya_Px.px_from_pix import *
+import argparse
 
 def main():
     # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
@@ -17,17 +18,36 @@ def main():
     print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LYA-1))
     wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
 
-    if len(sys.argv) != 5:
-        print("Usage: python main.py <redshift_bin> <redshift_bin_width> <healpix pixel> <output_path>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Run Lyman alpha cross power spectrum analysis with given parameters.")
+    # Positional arguments (required)
+    parser.add_argument("redshift", type=float, help="Redshift value (e.g., 2.2)")
+    parser.add_argument("redshift_bin", type=float, help="Redshift bin width (e.g., 0.2)")
+    parser.add_argument("healpix", type=int, help="Healpix pixel number (e.g., 500)")
+    parser.add_argument("output_path", type=str, help="Directory to save output files")
+    
+    # Optional (or required) argument for theta file; here we require it explicitly.
+    parser.add_argument("--theta_file", type=str, required=True,
+                        help="Path to theta_values.txt file (e.g., /path/to/theta_values.txt)")
 
-    z_alpha = float(sys.argv[1]) # redshift bin center
-    dz = float(sys.argv[2]) # redshift bin width
-    healpix = int(sys.argv[3]) # healpix pixel
-    out_path = str(sys.argv[4]) # output path
+    args = parser.parse_args()
+
+    # Extract the arguments
+    z_alpha = args.redshift # redshift bin center
+    dz = args.redshift_bin # redshift bin width
+    healpix = args.healpix # healpix pixel
+    out_path = args.output_path # output path
+    theta_file = args.theta_file
+    # Print to verify values
+    print(f"Redshift: {z_alpha}")
+    print(f"Redshift bin: {dz}")
+    print(f"Healpix pixel: {healpix}")
+    print(f"Output directory: {out_path}")
+    print(f"Theta file: {theta_file}")
 
     # read theta values from file with first column as theta_min and second column as theta_max
-    theta_array = np.loadtxt('theta_values.txt',skiprows=1)
+    theta_array = np.loadtxt(theta_file, skiprows=1)
+    # Load theta_values.txt from the provided path
+    print("Theta array loaded, shape:", theta_array.shape)
     theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
     theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD
 
