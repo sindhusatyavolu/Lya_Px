@@ -12,8 +12,8 @@ output_path = str(sys.argv[2])
 # read hdf5 file
 with h5py.File(path, 'r') as f:
     # Load shared datasets
-    k_arr = f['k_arr'][:N_fft//2]
-    p1d = f['p1d'][:N_fft//2]
+    k_arr = f['k_arr'][:]
+    p1d = f['p1d'][:]
 
     # Load attributes
     N_fft = f.attrs['N_fft']
@@ -36,9 +36,10 @@ with h5py.File(path, 'r') as f:
         px_weights.append(g['px_weights'][:])
         theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
 
-px = np.array(px)[:,:N_fft//2]
-px_var = np.array(px_var)[:,:N_fft//2]
-px_weights = np.array(px_weights)[:,:N_fft//2]
+k_arr = np.array(k_arr)
+px = np.array(px)
+px_var = np.array(px_var)
+px_weights = np.array(px_weights)
 
 print(np.shape(px))
 
@@ -57,10 +58,9 @@ k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
 Nk=k_edges.size-1
 print('Nk =',Nk)
 
-# define the rebinning vector B_alpha_m in the notes (including negative frequencies!)
-B_m=np.zeros([Nk,N_fft//2])
+# define the rebinning vector B_m for each k bin (1 if k_arr is in the given k bin, 0 otherwise) 
+B_m=np.zeros([Nk,N_fft]) # includes negative k values
 for i in range(Nk):
-    #print(i,k_edges[i],k_edges[i+1])
     inbin=(abs(k_arr)>k_edges[i]) & (abs(k_arr)<k_edges[i+1])
     B_m[i,inbin]=1    
 
@@ -68,11 +68,13 @@ for i in range(Nk):
 k_A=np.zeros(Nk)
 for i in range(Nk):
     k_A[i]=np.sum(B_m[i]*abs(k_arr))/np.sum(B_m[i])
+    assert np.allclose(k_A[i],np.mean(abs(k_arr)[B_m[i]==1])) 
+
 
 if show_plots==1:
-    plt.plot(k_arr,B_m[0],color='blue')
+    plt.plot(k_arr[:N_fft//2],B_m[0][:N_fft//2],color='blue')
     plt.axvline(x=k_A[0],color='blue',ls=':')
-    plt.plot(k_arr,B_m[5],color='red')
+    plt.plot(k_arr[:N_fft//2],B_m[5][:N_fft//2],color='red')
     plt.axvline(x=k_A[5],color='red',ls=':')
     plt.axhline(y=0,color='black')
 
@@ -81,64 +83,70 @@ if show_plots==1:
     plt.ylim([0,1])
     plt.xlabel('k')
     plt.ylabel('B_m')
+    plt.show()
 
 # iFFT B_m to get B_a (for the convolution theorem)
-B_a=np.empty([Nk,N_fft//2])
+B_a=np.empty([Nk,N_fft])  # real space bins 
 for i in range(Nk):
-    B_a[i]=np.fft.ifft(B_m[i]).real
+    B_a[i]=np.fft.ifft(B_m[i]).real  
 
 if show_plots==2:
-    x = pw_A*np.arange(N_fft//2)
+    x = pw_A*np.arange(N_fft)
     plt.plot(x,B_a[0],color='blue',label='k_A={:.3f}'.format(k_A[0]))
     plt.plot(x,B_a[2],color='red',label='k_A={:.3f}'.format(k_A[2]))
     plt.plot(x,B_a[4],color='green',label='k_A={:.3f}'.format(k_A[4]))
     plt.xlabel('x')
     plt.ylabel('B_a')
     plt.legend()
+    plt.show()
+
 
 # rebin the 1d power spectrum by convolving with B_m i.e; take product in real space and fft.
-p1d_Q_a = np.fft.ifft(p1d)
-p1d_BQ_m=np.empty([Nk,N_fft//2])
-for i in range(Nk):
-    p1d_BQ_m[i]=np.fft.fft(B_a[i]*p1d_Q_a).real
-
+p1d_ifft = np.fft.ifft(p1d)    # length N_fft
+p1d_bins =np.empty([Nk,N_fft]) # convolved p1d (think of it as weights) in each k bin 
+for i in range(Nk): 
+    p1d_bins[i]=np.fft.fft(B_a[i]*p1d_ifft).real
 
 if show_plots==3:
-    plt.plot(k_arr,p1d_BQ_m[0],color='blue')
+    plt.plot(k_arr[:N_fft//2],p1d_bins[0][:N_fft//2],color='blue')
     plt.axvline(x=k_A[0],color='blue',ls=':')
-    plt.plot(k_arr,p1d_BQ_m[5],color='red')
+    plt.plot(k_arr[:N_fft//2],p1d_bins[5][:N_fft//2],color='red')
+    plt.plot(k_arr[:N_fft//2],p1d_bins[20][:N_fft//2],color='green')
     plt.axvline(x=k_A[5],color='red',ls=':')
     plt.axhline(y=0,color='black')
+    plt.show()  
 
 # normalise p1d 
-p1d_A_A=np.empty(Nk)
+p1d_A_A=np.empty(Nk)  # total convolved p1d (sum of weights) in each k bin normalised by the pixel width (convention?)
 for i in range(Nk):
-    p1d_A_A[i]=np.sum(p1d_BQ_m[i])/pw_A
+    p1d_A_A[i]=np.sum(p1d_bins[i])/pw_A
+
 # actual summary statistics
-p1d_Theta_A=np.zeros_like(p1d_A_A)
+p1d_Theta_A=np.zeros_like(p1d_A_A)  
 for i in range(Nk):
     p1d_Theta_A[i]=np.sum(B_m[i]*p1d)/p1d_A_A[i]
 
 if plot_p1d:
     plt.plot(k_A,p1d_Theta_A,label='masked measurement')
+    #plt.plot(k_A,p1d_A_A,label='true P1D')
     #plt.plot(k_A,true_p1d_A,label='true P1D')
     #plt.plot(k_A,model_A,label='masked model')
     plt.xlabel('k')
     plt.ylabel('P1D(k)')
     plt.legend()
+    plt.show()
 
 # rebin Px
-
-px_BQ_m=np.empty([len(theta_bins),Nk,N_fft//2])
+px_BQ_m=np.empty([len(theta_bins),Nk,N_fft])
 for j in range(len(theta_bins)):
     px_Q_a = np.fft.ifft(px[j])    
     for i in range(Nk):
         px_BQ_m[j][i]=np.fft.fft(B_a[i]*px_Q_a).real
 
 if show_plots==4:
-    plt.plot(k_arr,px_BQ_m[0][0][:N_fft//2],color='blue')
+    plt.plot(k_arr[:N_fft//2],px_BQ_m[0][0][:N_fft//2],color='blue')
     plt.axvline(x=k_A[0],color='blue',ls=':')
-    plt.plot(k_arr,px_BQ_m[0][5][:N_fft//2],color='red')
+    plt.plot(k_arr[:N_fft//2],px_BQ_m[0][5][:N_fft//2],color='red')
     plt.axvline(x=k_A[5],color='red',ls=':')
     plt.axhline(y=0,color='black')
     plt.xlim([0,k_max/2])
@@ -146,12 +154,17 @@ if show_plots==4:
     plt.ylabel('p1d_BQ_m')
     plt.xlabel('k [1/A]')
     plt.ylabel('Px [A]')    
+    plt.show()
+print(np.sum(px_BQ_m[0][0]),np.sum(px_BQ_m[0][5]))    
+print(np.sum(px_BQ_m[1][0]),np.sum(px_BQ_m[1][5]))    
+
 
 # normalise px
 px_A_A=np.empty((len(theta_bins),Nk))
 for j in range(len(theta_bins)):
     for i in range(Nk):
         px_A_A[j][i]=np.sum(px_BQ_m[j][i])/pw_A
+
 for j in range(len(theta_bins)):
     print(np.array(theta_bins[j])*RAD_TO_ARCMIN, np.mean(px[j]))
 
@@ -159,14 +172,12 @@ for j in range(len(theta_bins)):
 px_Theta_A=np.zeros_like(px_A_A)
 for j in range(len(theta_bins)):
     for i in range(Nk):
-        px_Theta_A[j][i]=np.sum(B_m[i]*px[j])#/px_A_A[j][i]        
+        px_Theta_A[j][i]=np.sum(B_m[i]*px[j])/px_A_A[j][i]        
 
 for l in range(len(theta_bins)):
     plt.plot(k_A,px_Theta_A[l],label='%0.1f-%0.1f arcmin'%(theta_bins[l][0]*RAD_TO_ARCMIN,theta_bins[l][1]*RAD_TO_ARCMIN))
 
 print('theta bins:',np.array(theta_bins)*RAD_TO_ARCMIN)
-#plt.plot(k_A,true_p1d_A,label='true P1D')
-#plt.plot(k_A,model_A,label='masked model')
 plt.xlabel('k [1/A]')
 plt.ylabel('PX(k)[A]')
 plt.legend()
@@ -175,6 +186,9 @@ plt.show()
 
 
 # compare with forestflow 
+
+
+
 
 
 """
