@@ -1,6 +1,6 @@
 import numpy as np
-from config import *
-from auxiliary import *
+from Lya_Px.config import *
+from Lya_Px.auxiliary import *
 from astropy.io import fits
 
 def read_deltas(healpix,deltas_path):

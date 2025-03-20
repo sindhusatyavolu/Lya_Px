@@ -1,6 +1,6 @@
 import numpy as np
-from config import *
-from auxiliary import *
+from Lya_Px.config import *
+from Lya_Px.auxiliary import *
 
 def get_px(skewers,theta_min,theta_max):    
     px_ft = np.zeros(N_fft)

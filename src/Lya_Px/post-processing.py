@@ -1,8 +1,8 @@
 import numpy as np
 import sys
-from config import *
 import matplotlib.pyplot as plt
 import h5py
+from Lya_Px.config import *
 
 def main():
     show_plots = 0
@@ -219,4 +219,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        

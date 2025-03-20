@@ -3,9 +3,9 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import sys
 import h5py
-from config import *
-from functions import *
-from px_from_pix import *
+from Lya_Px.config import *
+from Lya_Px.functions import *
+from Lya_Px.px_from_pix import *
 
 def main():
     # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
