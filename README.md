@@ -15,7 +15,7 @@ source venv/bin/activate</pre>
 ## Install package in editable mode
 <pre>pip install -e .</pre>
 
-The list of dependencies required are listed in pyproject.toml. For versions used, check requirements.txt.
+The list of dependencies required are in pyproject.toml. For versions used, check requirements.txt.
 
 ## Usage
 
@@ -27,11 +27,11 @@ Run the command:
 
 Takes as inputs the redshift of the bin center, redshift bin size, healpix pixel number, desired location of the outputs, and location of the file containing theta bins where you want to measure Px.
 
-Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alternatively, the python script to read it can be found in post-processing.py
+Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alternatively, check post-processing.py for the python script to read it.
 
 ### Post-processing the Px measurement
 
-Primarily includes binning and plot. Usage:
+Primarily includes binning and plotting. Usage:
 
 ```python -m Lya_Px.post_processing <output_path> <plot_directory>```
 
