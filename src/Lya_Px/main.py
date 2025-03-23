@@ -44,7 +44,7 @@ def main():
     print(f"Theta file: {theta_file}")
 
     # read theta values from file with first column as theta_min and second column as theta_max
-    theta_array = np.loadtxt(theta_file, skiprows=1)
+    theta_array = np.loadtxt(theta_file, skiprows=1)   # first row is header  (S:keep or change?)
     # Load theta_values.txt from the provided path
     print("Theta array loaded, shape:", theta_array.shape)
     theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
