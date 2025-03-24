@@ -189,7 +189,8 @@ def main():
         for i in range(Nk):
             px_Theta_A[j][i]=np.sum(B_m[i]*px[j])/px_A_A[j][i]        
 
-    norm_factor = pw_A/N_fft*1/N_skewers
+    norm_factor = pw_A/N_fft*1/N_skewers # to give dimensions of A
+
     for l in range(len(theta_bins)):
         plt.plot(k_A,px_Theta_A[l]*norm_factor,label='%0.1f-%0.1f arcmin'%(theta_bins[l][0]*RAD_TO_ARCMIN,theta_bins[l][1]*RAD_TO_ARCMIN))
 
