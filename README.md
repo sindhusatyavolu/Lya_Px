@@ -23,7 +23,7 @@ The list of dependencies required are in pyproject.toml. For versions used, chec
 
 Run the command:
 
-```python3 -m Lya_Px.main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> ```
+```lyapx-main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> ```
 
 Takes as inputs the redshift of the bin center, redshift bin size, healpix pixel number, desired location of the outputs, and location of the file containing theta bins where you want to measure Px.
 
@@ -33,7 +33,7 @@ Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alterna
 
 Primarily includes binning and plotting. Usage:
 
-```python3 -m Lya_Px.post_processing <output_path> <plot_directory>```
+```lyapx-post <output_path> <plot_directory>```
 
 Takes as input the path to the Px file and the directory where you want to save any outputs.
 
