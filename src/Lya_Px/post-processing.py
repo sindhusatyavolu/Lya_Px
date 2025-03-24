@@ -14,7 +14,7 @@ def main():
     parser.add_argument("--path_to_px_file", type=str, required=True,
                         help="Path to Px hdf5 file (e.g., /path/to/px.hdf5)")
     parser.add_argument("--output_path", type=str, required=True,help="Path to output directory where plots etc will be saved")
-    parser.add_argument("--save_plots", type=int, required=True, help="Save plots (0: no, 1: Bin function 2: IFFT of Bin function 3: Binned P1D 4: Binned Px)")
+    parser.add_argument("--save_plots", type=int, required=True, help="0: no, 1: Bin function 2: IFFT of Bin function 3: Binned P1D 4: Binned Px")
 
     args = parser.parse_args()
 
