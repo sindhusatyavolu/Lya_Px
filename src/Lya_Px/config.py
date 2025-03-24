@@ -14,5 +14,10 @@ plot_px = True
 plot_px_vel = False
 bin_px = True
 
+# 1 job that averages over all healpix pixels (one for each mock)
+# Take multiple redshifts as input
+# more modular -- call class and plot functions from other files
+# deltas_path is hardocded right now. take it also as input
+
 
 
