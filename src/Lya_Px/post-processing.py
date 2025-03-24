@@ -15,6 +15,7 @@ def main():
                         help="Path to Px hdf5 file (e.g., /path/to/px.hdf5)")
     parser.add_argument("--output_path", type=str, required=True,help="Path to output directory where plots etc will be saved")
 
+    args = parser.parse_args()
 
     path = args.path_to_px_file 
     output_path = args.output_path
