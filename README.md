@@ -5,7 +5,7 @@ Lyman alpha forest cross power spectrum estimator code
 
 First, clone the repository and navigate to the directory
 
-<pre>git clone --branch class-based-code https://github.com/sindhusatyavolu/Lya_PxEC.git
+<pre>git clone --branch v2.0 https://github.com/sindhusatyavolu/Lya_PxEC.git
 cd Lya_PxEC </pre>
 
 ## Create and activate a virtual environment
@@ -23,9 +23,9 @@ The list of dependencies required are in pyproject.toml. For versions used, chec
 
 Run the command:
 
-```lyapx-main <redshift> <redshift_bin> <healpix> <output_path> --theta_file <path_to_theta_values.txt> ```
+```lyapx-main --config path_to_config_file ```
 
-Takes as inputs the redshift of the bin center, redshift bin size, healpix pixel number, desired location of the outputs, and location of the file containing theta bins where you want to measure Px.
+Takes as inputs the redshifts of the bin center, redshift bin size, healpix pixel numbers, desired location of the outputs, and theta bins where you want to measure Px. For an example .ini file, see under examples/
 
 Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alternatively, check post-processing.py for the python script to read it.
 
