@@ -9,12 +9,12 @@ ARCMIN_TO_RAD = 1.0/RAD_TO_ARCMIN
 n = 10
 N_fft = 2**n
 pw_A = 0.8 # pixel width in Angstrom
-P1D = False
+P1D = True
 plot_px = True
 plot_px_vel = False
 bin_px = True
 
-# 1 job that averages over all healpix pixels (one for each mock)
+# 1 job that averages over all healpix pixels (one for each mock) 
 # Take multiple redshifts as input, similar to theta file
 # more modular -- call class and plot functions from other files
 # deltas_path is hardcoded right now. take it also as input

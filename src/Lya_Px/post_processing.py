@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import h5py
-from Lya_Px.config import *
+from config import *
 import argparse
 
 def main():
@@ -48,13 +48,15 @@ def main():
             px_var.append(g['px_var'][:])
             px_weights.append(g['px_weights'][:])
             theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
-
+    
+    
     k_arr = np.array(k_arr)
     px = np.array(px)
     px_var = np.array(px_var)
     px_weights = np.array(px_weights)
 
     print(np.shape(px))
+    
 
     # S: I find the binning here a bit complicated. Not sure I understand how it's useful. See the commented code at the end for the binning I implemented.
 
@@ -192,13 +194,15 @@ def main():
     norm_factor = pw_A/N_fft*1/N_skewers # to give dimensions of A
 
     for l in range(len(theta_bins)):
+        #plt.plot(k_arr[:N_fft//2],px[l][:N_fft//2],label='%0.1f-%0.1f arcmin'%(theta_bins[l][0]*RAD_TO_ARCMIN,theta_bins[l][1]*RAD_TO_ARCMIN))
         plt.plot(k_A,px_Theta_A[l]*norm_factor,label='%0.1f-%0.1f arcmin'%(theta_bins[l][0]*RAD_TO_ARCMIN,theta_bins[l][1]*RAD_TO_ARCMIN))
-
+    
+    print(theta_bins)
     print('theta bins:',np.array(theta_bins)*RAD_TO_ARCMIN)
     plt.xlabel('k [1/A]')
     plt.ylabel('PX(k)[A]')
     plt.legend()
-    plt.savefig(output_path+'binned_px_comp.png')
+    plt.savefig(output_path+'binned_px_comp.png',bbox_inches='tight',dpi=350)
     plt.show()
 
 

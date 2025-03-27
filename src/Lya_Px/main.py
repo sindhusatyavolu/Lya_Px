@@ -3,14 +3,16 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import sys
 import h5py
-from Lya_Px.config import *
-from Lya_Px.functions import *
-from Lya_Px.px_from_pix import *
-from Lya_Px.auxiliary import *
-from Lya_Px.read_inputs import *
-from Lya_px.make_plots import *
+from config import *
+from functions import *
+from px_from_pix import *
+from auxiliary import *
+from make_plots import *
 
 import argparse
+
+import cProfile
+import pstats
 
 def main():
     # First define the official DESI wavelength grid (all wavelengths that we could possibly care about)
@@ -22,186 +24,125 @@ def main():
     print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LYA-1))
     wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
 
-    read_inputs()  
+    z_alpha, dz, healpix, out_path, theta_array, deltas_path = read_inputs()  
 
-    # figure out the center of the bin and its edges, in observed wavelength
-    lam_cen = LAM_LYA*(1+z_alpha)
-    lam_min = LAM_LYA*(1+z_alpha-0.5*dz)
-    lam_max = LAM_LYA*(1+z_alpha+0.5*dz)
-    print(lam_min,lam_cen,lam_max)
-
-    # Create FFT grid in observed wavelength 
-    # the FFT grid will have a fixed length of pixels (N_fft)  
-    k = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
-
-    # figure out the index of the global (desi) grid that is closer to the center of the redshift bin
-    i_cen = round((lam_cen-wave_desi_min)/pw_A) 
-    wave_fft_grid = wave_desi[i_cen-N_fft//2:i_cen+N_fft//2] 
-
-    if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > wave_desi_N:
-        print('FFT grid is out of bounds, try different N_fft')
-        exit(1) 
-
-    print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
-
-    # velocity grid
-    vel = wave_to_velocity(wave_fft_grid) # in km/s
-    dv = np.mean(np.diff(vel)) # in km/s
-    print(dv,np.diff(vel))
-    k_vel = np.fft.fftfreq(N_fft,d=dv)*2*np.pi # s/km
-
-    mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
-    # while we use i to refer to indices in the global (desi) grid, we use j to refer to the FFT grid of this redshift
-    j_cen = round((lam_cen-wave_fft_grid[0])/pw_A) 
-    # this should alway be N_fft/2
-    assert j_cen==N_fft//2
-
-    # figure out the indices (in the FFT grid) that fall within the redshift bin (top hat binning)
-    j_min = round((lam_min-wave_fft_grid[0])/pw_A)
-    j_max = round((lam_max-wave_fft_grid[0])/pw_A)
-    #print(j_min,j_max)
-    mask_fft_grid[:j_min]=0
-    mask_fft_grid[j_max:]=0
-
-    # Load deltas
-    file = read_deltas(healpix,deltas_path)
-
-    class Skewers:
-        def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, j_min_data,j_max_data, RA, Dec, z_qso):
-            self.wave_data = wave_data
-            self.delta_data = delta_data
-            self.weight_data = weight_data
-            self.weight_data *= (self.wave_data/4500)**3.8 
-
-            self.RA = RA
-            self.Dec = Dec
-            self.z_qso = z_qso
-
-            self.delta_fft_grid = delta_fft_grid
-            self.weight_fft_grid = weight_fft_grid
-            self.j_min_data = j_min_data
-            self.j_max_data = j_max_data
+    for i in range(len(z_alpha)):
+        print('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha[i],dz[i],healpix))
+        fft_grid = create_fft_grid(wave_desi_min,z_alpha[i],dz[i],wave_desi_N,wave_desi)
         
-        def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
-            
-            j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
-            j_max_data=round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
-            self.j_min_data = j_min_data
-            self.j_max_data = j_max_data
-            
-            # map the data deltas and weights into the FFT grid
-            delta_fft_grid=np.zeros(N_fft)
-            weight_fft_grid=np.zeros(N_fft)
-            
-            # have to make sure FFT grid is larger than the data grid that falls within the redshift bin
-            if (j_max_data-j_min_data) >= N_fft:
-                print('Data grid is larger than FFT grid, increase N_fft')
-                exit(1)
+        wave_fft_grid = fft_grid['wave_fft_grid']
+        k_arr = fft_grid['k']
+        k_vel = fft_grid['k_vel']
 
-            # figure out whether the spectrum is cut at low-z or at high-z.  S: what is the purporse of knowing high-z cut and low-z cut? this is the time limiting step
-            loz_cut=False
-            hiz_cut=False
-            if j_min_data < 0:
-                loz_cut=True
-                if j_max_data >=0:
-                    delta_fft_grid[:j_max_data]=self.delta_data[-j_min_data+1:]
-                    weight_fft_grid[:j_max_data]=self.weight_data[-j_min_data+1:]
-            if j_max_data >= N_fft:
-                hiz_cut=True
-                if j_min_data < N_fft:
-                    delta_fft_grid[j_min_data:]=self.delta_data[:N_fft-j_max_data-1]
-                    weight_fft_grid[j_min_data:]=self.weight_data[:N_fft-j_max_data-1]
-            if loz_cut==False and hiz_cut==False:
-                delta_fft_grid[j_min_data:j_max_data+1]=self.delta_data
-                weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
-            
-            weight_fft_grid = weight_fft_grid*mask_fft_grid
-
-            self.delta_fft_grid = delta_fft_grid  # real space 
-            self.weight_fft_grid = weight_fft_grid # real space 
-            
-    
-    # get sightlines from the delta file and map them to the FFT grid, for a given redshift bin
-    skewers = []
-    for hdu in file[1:]:
-        wave_data=10.0**(hdu.data['LOGLAM'])
-        delta_data=hdu.data['DELTA']
-        weight_data=hdu.data['WEIGHT']
+        mask_fft_grid = map_to_fft_grid(wave_fft_grid,fft_grid['lam_cen'],fft_grid['lam_min'],fft_grid['lam_max']) 
         
-        RA = hdu.header['RA']
-        Dec = hdu.header['DEC']
-        z_qso = hdu.header['Z']
-        # ignore skewers with no data at all in the redshift bin
-        if wave_data[-1]<lam_min or wave_data[0]>lam_max:
-            continue
+        # Load deltas
+        file = read_deltas(healpix,deltas_path)
 
-        skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, RA, Dec, z_qso)
-        skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
-        skewers.append(skewer)
+        Skewers = create_skewer_class()
 
-    # check that the first skewer is mapped correctly
-    print(skewers[0].RA,skewers[0].Dec,skewers[0].z_qso)
+        # get sightlines from the delta file and map them to the FFT grid, for a given redshift bin
+        skewers = []
+        count = 0
+        
+        for hdu in file[1:]:
+            wave_data=10.0**(hdu.data['LOGLAM'])
+            delta_data=hdu.data['DELTA']
+            weight_data=hdu.data['WEIGHT']            
+            RA = hdu.header['RA']
+            Dec = hdu.header['DEC']
+            z_qso = hdu.header['Z']
+            #if count%100 == 0:
+            #    print(wave_data)
 
-    N_skewers = len(skewers)
-    print('Number of skewers:',N_skewers)
-    norm_factor = pw_A/N_fft*1/N_skewers # ignoring the resolution function for now
-    norm_factor_vel = dv/N_fft*1/N_skewers
+            # ignore skewers with no data at all in the redshift bin
+            #if wave_data[-1]<lam_min or wave_data[0]>lam_max:
+            #    continue
 
-    # compute P1D
-    p1d = get_p1d(skewers)
-    p1d_norm = norm_factor*p1d
-    if P1D:
-        plt.plot(k[:N_fft//2],p1d_norm[:N_fft//2])
-        plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-        plt.xlabel('k [1/A]')
-        plt.ylabel('P1D [A]')
-        #plt.savefig('p1d-%d.png'%(healpix))
-        plt.show()
-        #clear image
-        plt.clf()
+            skewer = Skewers(wave_data, delta_data, weight_data, None, None, None, None, RA, Dec, z_qso)
+            skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
+            skewers.append(skewer)
+            count += 1
 
+        # check that the first skewer is mapped correctly
+        print(skewers[0].RA,skewers[0].Dec,skewers[0].z_qso)
+        
+        N_skewers = len(skewers)
+        print('Number of skewers:',N_skewers)
+        norm_factor = pw_A/N_fft #*1/N_skewers # ignoring the resolution function for now
 
-    px = np.empty((len(theta_min_array),N_fft))
-    px_var = np.empty((len(theta_min_array),N_fft))
-    px_weights = np.empty((len(theta_min_array),N_fft))
+        vel = wave_to_velocity(wave_fft_grid) # in km/s
+        dv = np.mean(np.diff(vel)) # in km/s
+        norm_factor_vel = dv/N_fft*1/N_skewers
 
-    for i in range(len(theta_min_array)):
-        px[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[0]
-        #px[i,:] *= norm_factor
-        px_weights[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[1]
-        px_var[i,:] = get_px(skewers,theta_min_array[i],theta_max_array[i])[2]
-        px_sum  = get_px(skewers,theta_min_array[i],theta_max_array[i])[3]
-        print(px_sum-px[i,:])
-        assert np.allclose(px_sum,px[i,:])
-
-    if plot_px:
-        for i in range(len(theta_min_array)):
-            plt.plot(k[:N_fft//2],px[i,:N_fft//2]*norm_factor,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
-        plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-        plt.xlabel('$k$ [1/A]')
-        plt.ylabel(r'$P_{\times}$ [A]')
-        plt.legend()
-        plt.show()
-        #plt.savefig('px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
-
-    if plot_px_vel:
-        for i in range(len(theta_min_array)):
-            plt.plot(k_vel[:N_fft//2],(k_vel[:N_fft//2]*px[i,:N_fft//2]*norm_factor_vel)/np.pi,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
-            plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
-            plt.xscale('log')
-            #plt.yscale('log')
-            plt.xlabel('$k$ [s/km]')
-            plt.ylabel(r'$kP_{\times}/\pi$')
-            plt.legend()
+        # compute P1D
+        p1d = get_p1d(skewers)
+        p1d_norm = norm_factor*p1d
+        if P1D:
+            plt.plot(k_arr[:N_fft//2],p1d_norm[:N_fft//2])
+            plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha[i],dz[i],healpix))
+            plt.xlabel('k [1/A]')
+            plt.ylabel('P1D [A]')
+            #plt.savefig('p1d-%d.png'%(healpix))
             plt.show()
-            #plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel-selected.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+            #clear image
+            #plt.clf()
+        
+        theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
+        theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD
+        print('theta_min_array:',theta_min_array)
+        print('theta_max_array:',theta_max_array)
+
+        px = np.empty((len(theta_min_array),N_fft))
+        px_var = np.empty((len(theta_min_array),N_fft))
+        px_weights = np.empty((len(theta_min_array),N_fft))
+
+        for l in range(len(theta_min_array)):
+            print('theta_min:',theta_min_array[l],'theta_max:',theta_max_array[l])
+            result = get_px(skewers,theta_min_array[l],theta_max_array[l])
+            px[l,:] = result[0]
+            px_weights[l,:] = result[1]
+            px_var[l,:] = result[2]
+            px_sum  = result[3]
+            print(px_sum-px[l,:])
+            assert np.allclose(px_sum,px[l,:])
+            px[l,:] *= norm_factor
+
+        if plot_px:
+            for k in range(len(theta_min_array)):
+                plt.plot(k_arr[:N_fft//2],px[k,:N_fft//2]*norm_factor,label='%f-%f arcmin'%(theta_min_array[k]*RAD_TO_ARCMIN,theta_max_array[k]*RAD_TO_ARCMIN))
+            plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha[i],dz[i],healpix))
+            plt.xlabel('$k$ [1/A]')
+            plt.ylabel(r'$P_{\times}$ [A]')
+            plt.legend()
+            plt.savefig(out_path+'px-%d-%d-%d-%d-%d.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN),bbox_inches='tight',dpi=350)
+            plt.show()
+
+        if plot_px_vel:
+            for i in range(len(theta_min_array)):
+                plt.plot(k_vel[:N_fft//2],(k_vel[:N_fft//2]*px[i,:N_fft//2]*norm_factor_vel)/np.pi,label='%f-%f arcmin'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
+                plt.title('z=%.2f, dz=%.2f, healpix=%d'%(z_alpha,dz,healpix))
+                plt.xscale('log')
+                #plt.yscale('log')
+                plt.xlabel('$k$ [s/km]')
+                plt.ylabel(r'$kP_{\times}/\pi$')
+                plt.legend()
+                plt.show()
+                #plt.savefig(out_path+'px-%d-%d-%d-%d-%d-vel-selected.png'%(healpix,theta_min_array[0]*RAD_TO_ARCMIN,theta_max_array[0]*RAD_TO_ARCMIN,theta_min_array[1]*RAD_TO_ARCMIN,theta_max_array[1]*RAD_TO_ARCMIN))
+        # save the results
+        #outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha[i],dz[i])
+        #save_to_hdf5(outfilename,px,k_arr,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights,p1d) # nfft, variance, average over skewers of square of weighted mask fft grid  
 
 
     # save the results
-    outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
-    save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights,p1d) # nfft, variance, average over skewers of square of weighted mask fft grid  
+    #outfilename = out_path+'/'+'px-%d-%.2f-%.2f.hdf5'%(healpix,z_alpha,dz)
+    #save_to_hdf5(outfilename,px,k,theta_min_array,theta_max_array,N_fft,dv,N_skewers,px_var,px_weights,p1d) # nfft, variance, average over skewers of square of weighted mask fft grid  
 
 
-if __name__ == '__main__':
-    main()
-    
+if __name__ == "__main__":
+    with cProfile.Profile() as pr:
+        main()
+
+    stats = pstats.Stats(pr)
+    stats.sort_stats("cumulative").print_stats(30)  # top 30 slowest entries
+
