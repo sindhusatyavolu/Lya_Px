@@ -10,7 +10,6 @@ def read_inputs():
 
     # All required arguments
     parser.add_argument("--redshifts", type=str, help="Column1 :Redshift value (e.g., 2.2) Column2: Redshift bin width (e.g., 0.2)")
-    parser.add_argument("healpix", type=int, help="Healpix pixel number (e.g., 500)")
     parser.add_argument("output_path", type=str, help="Directory to save output files")
     parser.add_argument("--theta_file", type=str, required=True,
                         help="Path to theta_values.txt file (e.g., /path/to/theta_values.txt)")
@@ -22,29 +21,23 @@ def read_inputs():
     redshifts = np.loadtxt(args.redshifts,skiprows=1) # redshifts and redshift bin widths
     z_alpha = redshifts[:,0] # redshift bin center
     dz = redshifts[:,1] # redshift bin width
-    healpix = args.healpix # healpix pixel
     out_path = args.output_path # output path
     theta_file = args.theta_file
     # Print to verify values
     print(f"Redshift: {z_alpha}")
     print(f"Redshift bin: {dz}")
-    print(f"Healpix pixel: {healpix}")
     print(f"Output directory: {out_path}")
     print(f"Theta file: {theta_file}")
 
     # read theta values from file with first column as theta_min and second column as theta_max
     theta_array = np.loadtxt(theta_file, skiprows=1)   # first row is header  (S:keep or change?)
     # Load theta_values.txt from the provided path
-    print("Theta array loaded, shape:", theta_array.shape)
-    theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
-    theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD
-
-    assert theta_min_array.size == theta_max_array.size
+    #assert theta_min_array.size == theta_max_array.size
 
     deltas_path = args.deltas_path 
     
     #'/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
-    return z_alpha, dz, healpix, out_path, theta_array, deltas_path
+    return z_alpha, dz, out_path, theta_array, deltas_path
 
 def read_deltas(healpix,deltas_path):
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
@@ -90,27 +83,12 @@ def create_fft_grid(wave_desi_min,z_alpha,dz,wave_desi_N,wave_desi):
 
     return fft_grid
 
-def map_to_fft_grid(wave_fft_grid,lam_cen,lam_min,lam_max):
-    
-    mask_fft_grid = np.ones(N_fft) # placeholder for the mask in the FFT grid
-    # while we use i to refer to indices in the global (desi) grid, we use j to refer to the FFT grid of this redshift
-    j_cen = round((lam_cen-wave_fft_grid[0])/pw_A) 
-    # this should alway be N_fft/2
-    assert j_cen==N_fft//2
 
-    # figure out the indices (in the FFT grid) that fall within the redshift bin (top hat binning)
-    j_min = round((lam_min-wave_fft_grid[0])/pw_A)
-    j_max = round((lam_max-wave_fft_grid[0])/pw_A)
-    #print(j_min,j_max)
-    mask_fft_grid[:j_min]=0
-    mask_fft_grid[j_max:]=0
-
-    return mask_fft_grid
 
 
 def create_skewer_class():
     class Skewers:
-        def __init__(self, wave_data, delta_data, weight_data, delta_fft_grid, weight_fft_grid, j_min_data,j_max_data, RA, Dec, z_qso):
+        def __init__(self, wave_data, delta_data, weight_data, RA, Dec, z_qso,redshifts,redshift_bins):
             self.wave_data = wave_data
             self.delta_data = delta_data
             self.weight_data = weight_data
@@ -119,30 +97,35 @@ def create_skewer_class():
             self.RA = RA
             self.Dec = Dec
             self.z_qso = z_qso
-
-            self.delta_fft_grid = delta_fft_grid
-            self.weight_fft_grid = weight_fft_grid
-            self.j_min_data = j_min_data
-            self.j_max_data = j_max_data
-        
-        def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
             
+            wave_min = wave_data[0]
+            wave_max = wave_data[-1]
+            
+            lam_bin = LAM_LYA*(1+redshifts)
+            lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA
+            lam_max = lam_bin + 0.5*redshift_bins*LAM_LYA 
+            
+            self.z_bins = []
+            self.z_bins_width = []
+
+            for i in range(len(redshifts)):
+                if wave_min < lam_max[i] and wave_max > lam_min[i]:
+                    self.z_bins.append(float(redshifts[i]))
+                    self.z_bins_width.append(float(redshift_bins[i]))
+
+        def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
+
+            
+            delta_fft_grid = np.zeros(N_fft)
+            weight_fft_grid = np.zeros(N_fft)
+
+            # Map the observed spectrum to the FFT grid for this particular redshift bin    
             j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
             j_max_data=round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
-            self.j_min_data = j_min_data
-            self.j_max_data = j_max_data
             
-            # map the data deltas and weights into the FFT grid
-            delta_fft_grid=np.zeros(N_fft)
-            weight_fft_grid=np.zeros(N_fft)
-            
-            # have to make sure FFT grid is larger than the data grid that falls within the redshift bin
-            if (j_max_data-j_min_data) >= N_fft:
-                print('Data grid is larger than FFT grid, increase N_fft')
-                exit(1)
 
-            # figure out whether the spectrum is cut at low-z or at high-z.
-            loz_cut = False  
+            # figure out whether the spectrum is cut at low-z or at high-z
+            loz_cut=False
             hiz_cut=False
             if j_min_data < 0:
                 loz_cut=True
@@ -157,19 +140,30 @@ def create_skewer_class():
             if loz_cut==False and hiz_cut==False:
                 delta_fft_grid[j_min_data:j_max_data+1]=self.delta_data
                 weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
-            
-            weight_fft_grid = weight_fft_grid*mask_fft_grid
 
-            self.delta_fft_grid = delta_fft_grid  # real space 
-            self.weight_fft_grid = weight_fft_grid # real space 
+
+            weight_fft_grid *= mask_fft_grid
+             
+            self.delta_fft_grid = delta_fft_grid
+            self.weight_fft_grid = weight_fft_grid
+            self.mask_fft_grid = mask_fft_grid
             
+            return None 
+                               
     return Skewers
 
 
-def get_p1d(skewers):
+def get_p1d(all_skewers,wave_fft_grid,mask_fft_grid):
     p1d = np.zeros(N_fft)
-    for skewer in skewers:
-        wighted_delta_ft = np.fft.fft(skewer.delta_fft_grid * skewer.weight_fft_grid)
-        p1d += np.abs(wighted_delta_ft)**2
-    return p1d
+    p1d = np.zeros(N_fft)
+    for skewer in all_skewers:
+        skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
+        delta = skewer.delta_fft_grid
+        weight = skewer.weight_fft_grid
+        fft_weighted_delta = np.fft.fft(delta * weight)
+        p1d += np.abs(fft_weighted_delta)**2
+
+    # Normalize
+    p1d_norm = (pw_A / N_fft) * (1 / len(all_skewers)) * p1d
+    return p1d, p1d_norm
 
