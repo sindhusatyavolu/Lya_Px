@@ -3,10 +3,10 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import sys
 import h5py
-from params import *
-from functions import read_deltas, create_skewer_class, get_p1d
-from px_from_pix import get_px
-from auxiliary import angular_separation,save_to_hdf5,wave_to_velocity
+from Lya_Px.params import *
+from Lya_Px.functions import read_deltas, create_skewer_class, get_p1d
+from Lya_Px.px_from_pix import get_px
+from Lya_Px.auxiliary import angular_separation,save_to_hdf5,wave_to_velocity
 import cProfile
 import pstats
 

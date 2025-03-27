@@ -1,6 +1,6 @@
 import numpy as np
 import h5py
-from params import *
+from Lya_Px.params import *
 
 # function to measure the angular separation between two points on the sky
 def angular_separation(ra1, dec1, ra2, dec2): 

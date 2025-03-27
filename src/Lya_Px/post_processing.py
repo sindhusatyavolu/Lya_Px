@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import h5py
-from params import *
+from Lya_Px.params import *
 import argparse
 
 def main():

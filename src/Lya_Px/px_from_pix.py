@@ -1,6 +1,6 @@
 import numpy as np
-from params import *
-from auxiliary import *
+from Lya_Px.params import *
+from Lya_Px.auxiliary import angular_separation
 
 def get_px(all_skewers,theta_min,theta_max):
     
