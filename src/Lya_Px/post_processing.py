@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import h5py
-from config import *
+from params import *
 import argparse
 
 def main():

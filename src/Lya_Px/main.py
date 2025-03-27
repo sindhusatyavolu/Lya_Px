@@ -3,12 +3,10 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import sys
 import h5py
-from config import *
-from functions import *
-from px_from_pix import *
-from auxiliary import *
-from make_plots import *
-
+from params import *
+from functions import read_deltas, create_skewer_class, get_p1d
+from px_from_pix import get_px
+from auxiliary import angular_separation,save_to_hdf5,wave_to_velocity
 import cProfile
 import pstats
 
@@ -23,11 +21,8 @@ def main():
     wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
     
     # Take as inputs the redshift and theta bins 
-    z_alpha, dz, out_path, theta_array, deltas_path = read_inputs()
     theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
     theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD
-
-    healpixlist = [500]
 
     skewers_by_healpix = {}
 
@@ -95,23 +90,30 @@ def main():
             px_weights[theta,:] = result[1]
             px_var[theta,:] = result[2]
             px_sum  = result[3]
-            print(px_sum-px[theta,:])
+            #print(px_sum-px[theta,:])
+            
             assert np.allclose(px_sum,px[theta,:])
-            px_norm =  px[theta,:] * (pw_A / N_fft)           
+            
+            px_norm =  px[theta,:] * (pw_A / N_fft)           # in A
+            
             if plot_px:
                 plt.plot(k_arr[:N_fft//2],px_norm[:N_fft//2],label='%f-%f arcmin'%(theta_min_array[theta]*RAD_TO_ARCMIN,theta_max_array[theta]*RAD_TO_ARCMIN))
+        
         plt.xlabel('$k$ [A]')
         plt.ylabel(r'$P(k)$[A]')
         plt.legend()
         plt.show()
 
         # save results to file
-        filename = out_path + 'px_z_{:.3f}.h5'.format(z_alpha[z])
+        filename = output_path + 'px_z_{:.3f}.h5'.format(z_alpha[z])
         save_to_hdf5(filename,z_alpha[z],dz[z],px,k_arr,theta_min_array,theta_max_array,px_var,px_weights,p1d_norm)    
         
 
 if __name__=="__main__":
     main()
+
+
+
 
 
 

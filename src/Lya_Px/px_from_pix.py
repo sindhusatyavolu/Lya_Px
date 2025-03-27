@@ -1,5 +1,5 @@
 import numpy as np
-from config import *
+from params import *
 from auxiliary import *
 
 def get_px(all_skewers,theta_min,theta_max):

@@ -1,90 +1,13 @@
 import numpy as np
-from config import *
+from params import *
 from auxiliary import *
 from astropy.io import fits
 import argparse
-from config import *
-
-def read_inputs():
-    parser = argparse.ArgumentParser(description="Run Lyman alpha cross power spectrum analysis with given parameters.")
-
-    # All required arguments
-    parser.add_argument("--redshifts", type=str, help="Column1 :Redshift value (e.g., 2.2) Column2: Redshift bin width (e.g., 0.2)")
-    parser.add_argument("output_path", type=str, help="Directory to save output files")
-    parser.add_argument("--theta_file", type=str, required=True,
-                        help="Path to theta_values.txt file (e.g., /path/to/theta_values.txt)")
-    parser.add_argument("--deltas_path", type=str, required=True,help="Path to delta files")
-
-    args = parser.parse_args()
-
-    # Extract the arguments
-    redshifts = np.loadtxt(args.redshifts,skiprows=1) # redshifts and redshift bin widths
-    z_alpha = redshifts[:,0] # redshift bin center
-    dz = redshifts[:,1] # redshift bin width
-    out_path = args.output_path # output path
-    theta_file = args.theta_file
-    # Print to verify values
-    print(f"Redshift: {z_alpha}")
-    print(f"Redshift bin: {dz}")
-    print(f"Output directory: {out_path}")
-    print(f"Theta file: {theta_file}")
-
-    # read theta values from file with first column as theta_min and second column as theta_max
-    theta_array = np.loadtxt(theta_file, skiprows=1)   # first row is header  (S:keep or change?)
-    # Load theta_values.txt from the provided path
-    #assert theta_min_array.size == theta_max_array.size
-
-    deltas_path = args.deltas_path 
-    
-    #'/global/cfs/cdirs/desi/science/lya/mock_analysis/develop/ifae-ql/qq_desi_y3/v1.0.5/analysis-0/jura-124/raw_bao_unblinding/deltas_lya/Delta/'
-    return z_alpha, dz, out_path, theta_array, deltas_path
 
 def read_deltas(healpix,deltas_path):
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
     file = fits.open(delta_file)
     return file
-
-
-def create_fft_grid(wave_desi_min,z_alpha,dz,wave_desi_N,wave_desi):
-    fft_grid = {}
-
-    # figure out the center of the bin and its edges, in observed wavelength
-    lam_cen = LAM_LYA*(1+z_alpha)
-    lam_min = LAM_LYA*(1+z_alpha-0.5*dz)
-    lam_max = LAM_LYA*(1+z_alpha+0.5*dz)
-    print(lam_min,lam_cen,lam_max)
-    fft_grid['lam_cen'] = lam_cen
-    fft_grid['lam_min'] = lam_min
-    fft_grid['lam_max'] = lam_max
-
-    # Create FFT grid in observed wavelength 
-    # the FFT grid will have a fixed length of pixels (N_fft)  
-    k = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
-    fft_grid['k'] = k
-
-    # figure out the index of the global (desi) grid that is closer to the center of the redshift bin
-    i_cen = round((lam_cen-wave_desi_min)/pw_A) 
-    wave_fft_grid = wave_desi[i_cen-N_fft//2:i_cen+N_fft//2] 
-
-    fft_grid['wave_fft_grid'] = wave_fft_grid
-
-    if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > wave_desi_N:
-        print('FFT grid is out of bounds, try different N_fft')
-        exit(1) 
-
-    print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
-
-    # velocity grid
-    vel = wave_to_velocity(wave_fft_grid) # in km/s
-    dv = np.mean(np.diff(vel)) # in km/s
-    print(dv,np.diff(vel))
-    k_vel = np.fft.fftfreq(N_fft,d=dv)*2*np.pi # s/km
-    fft_grid['k_vel'] = k_vel
-
-    return fft_grid
-
-
-
 
 def create_skewer_class():
     class Skewers:
@@ -166,4 +89,45 @@ def get_p1d(all_skewers,wave_fft_grid,mask_fft_grid):
     # Normalize
     p1d_norm = (pw_A / N_fft) * (1 / len(all_skewers)) * p1d
     return p1d, p1d_norm
+
+
+def create_fft_grid(wave_desi_min,z_alpha,dz,wave_desi_N,wave_desi):
+    fft_grid = {}
+
+    # figure out the center of the bin and its edges, in observed wavelength
+    lam_cen = LAM_LYA*(1+z_alpha)
+    lam_min = LAM_LYA*(1+z_alpha-0.5*dz)
+    lam_max = LAM_LYA*(1+z_alpha+0.5*dz)
+    print(lam_min,lam_cen,lam_max)
+    fft_grid['lam_cen'] = lam_cen
+    fft_grid['lam_min'] = lam_min
+    fft_grid['lam_max'] = lam_max
+
+    # Create FFT grid in observed wavelength 
+    # the FFT grid will have a fixed length of pixels (N_fft)  
+    k = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
+    fft_grid['k'] = k
+
+    # figure out the index of the global (desi) grid that is closer to the center of the redshift bin
+    i_cen = round((lam_cen-wave_desi_min)/pw_A) 
+    wave_fft_grid = wave_desi[i_cen-N_fft//2:i_cen+N_fft//2] 
+
+    fft_grid['wave_fft_grid'] = wave_fft_grid
+
+    if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > wave_desi_N:
+        print('FFT grid is out of bounds, try different N_fft')
+        exit(1) 
+
+    print(wave_fft_grid[0],'< lambda <',wave_fft_grid[-1])
+
+    # velocity grid
+    vel = wave_to_velocity(wave_fft_grid) # in km/s
+    dv = np.mean(np.diff(vel)) # in km/s
+    print(dv,np.diff(vel))
+    k_vel = np.fft.fftfreq(N_fft,d=dv)*2*np.pi # s/km
+    fft_grid['k_vel'] = k_vel
+
+    return fft_grid
+
+
 
