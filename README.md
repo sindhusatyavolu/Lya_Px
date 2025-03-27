@@ -1,4 +1,4 @@
-# Lya_PxEC
+# Lya_Px
 Lyman alpha forest cross power spectrum estimator code 
 
 ## Installation
