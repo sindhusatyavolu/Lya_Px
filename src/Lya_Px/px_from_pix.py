@@ -38,15 +38,14 @@ def get_px(all_skewers,theta_min,theta_max):
                     fft_weight2 = np.fft.fft(weight2)
                     products_weight.append((fft_weight1*np.conjugate(fft_weight2)).real)   
                     
-                    
     # compute the variance of the products
     px_var = np.var(products,axis=0)
     px_ave = np.mean(products,axis=0)
-    print('variance and mean computed',px_ave)
+    #print('variance and mean computed',px_ave)
     w_v_m = np.mean(products_weight,axis=0)
-    print('mean of product of fft of weights computed',w_v_m)   
+    #print('mean of product of fft of weights computed',w_v_m)   
     print(len(products),'Number of pairs')
-    return px_ft/len(products), w_v_m, px_var,px_ave, px_ave #*len(products)
+    return px_ft/len(products), w_v_m, px_var,px_ave,len(products)
 
 
 

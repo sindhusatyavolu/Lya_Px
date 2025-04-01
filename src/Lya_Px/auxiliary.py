@@ -41,3 +41,31 @@ def save_to_hdf5(filename,z,dz,px,k_arr,theta_min_array,theta_max_array,px_var,p
 
     return None
 
+def save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output_path, healpixlist):
+    for z_bin in range(len(z_alpha)):
+        # Pull out all keys that match this z_bin
+        matching_keys = [key for key in px_avg if np.isclose(key[0], float(z_alpha[z_bin]))]
+
+        theta_mins = [key[1][0] for key in matching_keys]
+        theta_maxs = [key[1][1] for key in matching_keys]
+        px_data    = [px_avg[key] for key in matching_keys]
+        px_vars    = [px_var[key] for key in matching_keys]
+        px_weights_data = [px_weights[key] for key in matching_keys]
+        p1d = [p1d_avg[z_alpha[z_bin]]]
+
+        filename = output_path + f'px-nhp_{len(healpixlist)}_zbin_{z_alpha[z_bin]:.1f}.hdf5'
+
+        save_to_hdf5(
+            filename,
+            z_alpha[z_bin],
+            dz[z_bin],
+            px_data,
+            k_arr,
+            theta_mins,
+            theta_maxs,
+            px_vars,
+            px_weights_data,
+            p1d
+        )
+        print('Saved to', filename)
+    return None

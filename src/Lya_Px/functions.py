@@ -3,11 +3,23 @@ from Lya_Px.params import *
 from Lya_Px.auxiliary import angular_separation
 from astropy.io import fits
 import argparse
-
-def read_deltas(healpix,deltas_path):
+from collections import defaultdict
+ 
+def get_skewers(healpix,deltas_path):
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
     file = fits.open(delta_file)
-    return file
+    Skewers = create_skewer_class()
+    skewers = []
+    for hdu in file[1:]:
+            wave_data=10.0**(hdu.data['LOGLAM'])
+            delta_data=hdu.data['DELTA']
+            weight_data=hdu.data['WEIGHT']            
+            RA = hdu.header['RA']
+            Dec = hdu.header['DEC']
+            z_qso = hdu.header['Z']
+            skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
+            skewers.append(skewer)
+    return skewers
 
 def create_skewer_class():
     class Skewers:
@@ -130,4 +142,24 @@ def create_fft_grid(wave_desi_min,z_alpha,dz,wave_desi_N,wave_desi):
     return fft_grid
 
 
+def avg_over_healpixels(results):
+    px_all = defaultdict(list)  # key = (z, theta_bin), value = list of Px arrays
+    px_weights_all = defaultdict(list)  
+    p1d_all = defaultdict(list)
+    for k_arr, px_dict,p1d_dict, px_weights in results:
+        for key in px_dict:
+            px_all[key].append(px_dict[key])  # accumulate only bins that exist
+            px_weights_all[key].append(px_weights[key])
+            p1d_all[key[0]].append(p1d_dict[key[0]])
 
+    px_avg = {}
+    px_var = {}
+    p1d_avg = {}
+    for key in px_all:
+        stacked = np.stack(px_all[key])
+        stacked_weights = np.stack(px_weights_all[key])
+        px_avg[key] = np.mean(stacked, axis=0)
+        px_var[key] = np.var(stacked, axis=0)
+        px_weights[key] = np.var(stacked_weights, axis=0)  # count non-zero elements
+        p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
+    return k_arr, px_avg, px_var, px_weights, p1d_avg

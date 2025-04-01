@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import h5py
-from Lya_Px.params import *
+#from Lya_Px.params import *
 import argparse
 
 def main():
@@ -29,7 +29,45 @@ def main():
         p1d = f['p1d'][:]
 
         # Load attributes
-        N_fft = f.attrs['N_fft']
+        z = f.attrs['z']
+        dz = f.attrs['dz']
+
+        # Loop over all theta groups
+        px = []
+        px_var = []
+        px_weights = []
+        theta_bins = []
+        # sort only the theta_* groups
+        theta_keys = sorted([key for key in f.keys() if key.startswith('theta_')],
+                        key=lambda k: float(k.split('_')[1]))  # sort by theta_min in arcmin
+
+        for key in theta_keys:
+            g = f[key]
+            px.append(g['px'][:])
+            px_var.append(g['px_var'][:])
+            px_weights.append(g['px_weights'][:])
+            theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
+    
+    
+    k_arr = np.array(k_arr)
+    px_norm = np.array(px)
+    px_var = np.array(px_var)
+    px_weights = np.array(px_weights)
+    N_fft = len(k_arr)
+    print(np.shape(px_norm))
+    #plt.plot(k_arr[:N_fft//2],px_norm[0][:N_fft//2])
+    #plt.plot(k_arr[:N_fft//2],px_norm[1][:N_fft//2])
+    #plt.plot(k_arr[:N_fft//2],px_norm[2][:N_fft//2])
+    
+
+    path = "/Users/ssatyavolu/px-500-2.20-0.20.hdf5"
+    with h5py.File(path, 'r') as f:
+        # Load shared datasets
+        k_arr = f['k_arr'][:]
+        p1d = f['p1d'][:]
+
+        # Load attributes
+        n_fft = f.attrs['N_fft']
         dvel = f.attrs['dvel']
         N_skewers = f.attrs['N_skewers']
 
@@ -51,12 +89,22 @@ def main():
     
     
     k_arr = np.array(k_arr)
-    px = np.array(px)
+    pw_A = 0.8
+    N_fft = len(k_arr)
+    px = np.array(px)*pw_A/N_fft
     px_var = np.array(px_var)
     px_weights = np.array(px_weights)
-
-    print(np.shape(px))
     
+    print(px[-1]/px_norm)
+    plt.plot(k_arr[:N_fft//2],px[-1][:N_fft//2]/px_norm[-1][:N_fft//2],label='500-2.20-0.20')
+    plt.xlabel('k [A]')
+    plt.ylabel(r'$P(k)/P^{updated}(k)$')
+    plt.legend()
+    #plt.savefig('ratio_px_old_v_new.png',dpi=350,bbox_inches='tight')
+    
+    plt.show()
+
+    sys.exit() 
 
     # S: I find the binning here a bit complicated. Not sure I understand how it's useful. See the commented code at the end for the binning I implemented.
 
