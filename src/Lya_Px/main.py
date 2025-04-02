@@ -9,7 +9,7 @@ from Lya_Px.px_from_pix import get_px
 from Lya_Px.auxiliary import angular_separation,save_to_hdf5,wave_to_velocity, save_results
 import cProfile
 import pstats
-from compute_px import compute_px
+from Lya_Px.compute_px import compute_px
 from multiprocessing import Pool
 import os
 
