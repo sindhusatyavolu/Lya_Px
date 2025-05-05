@@ -9,7 +9,7 @@ from Lya_Px.px_from_pix import get_px
 from Lya_Px.auxiliary import angular_separation,save_to_hdf5,wave_to_velocity, save_results
 import cProfile
 import pstats
-from compute_px import compute_px
+from Lya_Px.compute_px import compute_px
 from multiprocessing import Pool
 import os
 
@@ -30,6 +30,7 @@ def main():
 
     args = [(hp, z_alpha, dz, theta_min_array, theta_max_array, wave_desi) for hp in healpixlist]
 
+    # Use multiprocessing to compute px for each healpix
     with Pool(8) as pool:
         results = pool.starmap(compute_px, args)
 
@@ -38,14 +39,15 @@ def main():
     save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output_path, healpixlist)
 
 
-if __name__=="__main__":
-    main()
 
+if __name__=="__main__":
     #main()
-    #with cProfile.Profile() as pr:
-    #    main()
-    #stats = pstats.Stats(pr)
-    #stats.sort_stats("cumulative").print_stats(50)
+
+    main()
+    with cProfile.Profile() as pr:
+        main()
+    stats = pstats.Stats(pr)
+    stats.sort_stats("cumulative").print_stats(50)
 
 
 
