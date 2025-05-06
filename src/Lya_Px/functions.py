@@ -1,6 +1,6 @@
 import numpy as np
-from params import *
-from auxiliary import angular_separation
+from Lya_Px.params import *
+from Lya_Px.auxiliary import angular_separation
 from astropy.io import fits
 import argparse
 from collections import defaultdict
