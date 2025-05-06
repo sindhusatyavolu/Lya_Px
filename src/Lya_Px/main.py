@@ -31,11 +31,8 @@ def main():
     args = [(hp, z_alpha, dz, theta_min_array, theta_max_array, wave_desi) for hp in healpixlist]
 
     # Use multiprocessing to compute px for each healpix
-    with Pool(8) as pool:
+    with Pool(ncpus) as pool:
         results = pool.starmap(compute_px, args)
-    
-    #results = []
-    #results.append(compute_px(healpixlist[0], z_alpha, dz, theta_min_array, theta_max_array, wave_desi))
     
     k_arr, px_avg, px_var, px_weights, p1d_avg = avg_over_healpixels(results)
 
