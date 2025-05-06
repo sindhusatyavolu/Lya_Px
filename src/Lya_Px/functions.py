@@ -1,26 +1,32 @@
 import numpy as np
-from Lya_Px.params import *
-from Lya_Px.auxiliary import angular_separation
+from params import *
+from auxiliary import angular_separation
 from astropy.io import fits
 import argparse
 from collections import defaultdict
- 
+import fitsio
+
 def get_skewers(healpix,deltas_path):
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
-    file = fits.open(delta_file)
+    
     Skewers = create_skewer_class()
     skewers = []
-    for hdu in file[1:]:
-            wave_data=10.0**(hdu.data['LOGLAM'])
-            delta_data=hdu.data['DELTA']
-            weight_data=hdu.data['WEIGHT']            
-            RA = hdu.header['RA']
-            Dec = hdu.header['DEC']
-            z_qso = hdu.header['Z']
-            skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
-            skewers.append(skewer)
-    return skewers
+    f =  fitsio.FITS(delta_file)
 
+    for hdu in range(1,len(f)):
+        RA = f[hdu].read_header()['RA']
+        Dec = f[hdu].read_header()['DEC']
+        z_qso = f[hdu].read_header()['Z']
+        loglam = f[hdu].read()['LOGLAM']
+        wave_data=10.0**(loglam)
+        delta_data=f[hdu].read('DELTA')
+        weight_data=f[hdu].read('WEIGHT')
+        skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
+        skewers.append(skewer)
+
+   
+    return skewers
+    
 def create_skewer_class():
     class Skewers:
         def __init__(self, wave_data, delta_data, weight_data, RA, Dec, z_qso,redshifts,redshift_bins):

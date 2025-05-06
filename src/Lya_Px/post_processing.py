@@ -55,6 +55,7 @@ def main():
     px_weights = np.array(px_weights)
     N_fft = len(k_arr)
     print(np.shape(px_norm))
+
     #plt.plot(k_arr[:N_fft//2],px_norm[0][:N_fft//2])
     #plt.plot(k_arr[:N_fft//2],px_norm[1][:N_fft//2])
     #plt.plot(k_arr[:N_fft//2],px_norm[2][:N_fft//2])
