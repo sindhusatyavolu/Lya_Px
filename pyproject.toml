@@ -16,9 +16,8 @@ dependencies = [
     "matplotlib",
     "astropy",
     "h5py",
-    "argparse",
-    "fitsio"
-    ]
+    "argparse"
+]
 
 [project.scripts]
 lyapx-main = "Lya_Px.main:main"
