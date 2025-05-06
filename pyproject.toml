@@ -16,7 +16,7 @@ dependencies = [
     "matplotlib",
     "astropy",
     "h5py",
-    "argparse"
+    "argparse",
     "fitsio"
 ]
 
