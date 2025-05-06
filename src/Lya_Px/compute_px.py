@@ -33,6 +33,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         mask_fft_grid[j_max:] = 0
 
         all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
+        
         if not all_skewers:
             continue
 
@@ -52,6 +53,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             px_weights[(z_bin, theta_bin)] = result[1]
             p1d_dict[z_bin] = p1d_norm
 
+    
     return k_arr, result_dict, p1d_dict ,px_weights
 
 
