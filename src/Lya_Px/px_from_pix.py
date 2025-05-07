@@ -6,8 +6,8 @@ def get_px(all_skewers,theta_min,theta_max):
 
     # to map the sightlines onto the FFT grid 
     for skewer in all_skewers:
-        try skewer.delta_fft_data:
-            pass
+        try:
+            skewer_delta = skewer.delta_fft_data
         except AttributeError:
             skewer.map_to_fftgrid(wave_fft_grid)
 
