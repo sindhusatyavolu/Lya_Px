@@ -4,13 +4,6 @@ from Lya_Px.auxiliary import angular_separation
 
 def get_px(all_skewers,theta_min,theta_max):
 
-    # to map the sightlines onto the FFT grid 
-    for skewer in all_skewers:
-        try:
-            skewer_delta = skewer.delta_fft_data
-        except AttributeError:
-            skewer.map_to_fftgrid(wave_fft_grid)
-
     px_ft = np.zeros(N_fft)
     # mean of w_m v_m^* (product of FFT of masks)
     # w_v_m = (w_m v_m^*).real (product of FFT mask, real part only)

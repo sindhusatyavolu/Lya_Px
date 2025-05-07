@@ -44,9 +44,13 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         
         if not all_skewers:
             continue
+    
+        for skewer in all_skewers:
+            # map the sightline onto the FFT grid
+            skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
 
         # (optional) compute P1D here if needed
-        p1d,p1d_norm = get_p1d(all_skewers, wave_fft_grid, mask_fft_grid)
+        p1d,p1d_norm = get_p1d(all_skewers)
 
         for theta in range(len(theta_min_array)):
             result = get_px(all_skewers, theta_min_array[theta], theta_max_array[theta])

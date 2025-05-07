@@ -97,13 +97,11 @@ def create_skewer_class():
     return Skewers
 
 
-def get_p1d(all_skewers,wave_fft_grid,mask_fft_grid):
+def get_p1d(all_skewers):
     
     p1d = np.zeros(N_fft)
     
     for skewer in all_skewers:
-        # map the sightline onto the FFT grid
-        skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
 
         delta = skewer.delta_fft_grid
         weight = skewer.weight_fft_grid
