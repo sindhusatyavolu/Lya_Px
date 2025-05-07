@@ -7,10 +7,12 @@ from collections import defaultdict
 import fitsio
 
 def get_skewers(healpix,deltas_path):
+    # read skewers from the healpix pixel
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
     
     Skewers = create_skewer_class()
     skewers = []
+
     f =  fitsio.FITS(delta_file)
 
     for hdu in range(1,len(f)):
@@ -21,41 +23,42 @@ def get_skewers(healpix,deltas_path):
         wave_data=10.0**(loglam)
         delta_data=f[hdu].read('DELTA')
         weight_data=f[hdu].read('WEIGHT')
+        # create skewer object for each sightline in the healpix pixel
         skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
         skewers.append(skewer)
-
    
     return skewers
     
 def create_skewer_class():
     class Skewers:
         def __init__(self, wave_data, delta_data, weight_data, RA, Dec, z_qso,redshifts,redshift_bins):
-            self.wave_data = wave_data
-            self.delta_data = delta_data
-            self.weight_data = weight_data
-            self.weight_data *= (self.wave_data/4500)**3.8 
+            self.wave_data = wave_data # observed wavelength in Angstrom
+            self.delta_data = delta_data # delta in real space
+            self.weight_data = weight_data # weight in real space
+            self.weight_data *= (self.wave_data/4500)**3.8  
 
-            self.RA = RA
+            self.RA = RA  
             self.Dec = Dec
             self.z_qso = z_qso
             
-            wave_min = wave_data[0]
+            wave_min = wave_data[0] 
             wave_max = wave_data[-1]
             
-            lam_bin = LAM_LYA*(1+redshifts)
-            lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA
+            lam_bin = LAM_LYA*(1+redshifts)  # redshifts correspond to the center of the redshift bin
+            lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA  # redshift_bins correspond to the width of the redshift bin
             lam_max = lam_bin + 0.5*redshift_bins*LAM_LYA 
             
             self.z_bins = []
             self.z_bins_width = []
-
+            # find the redshift bins that overlap with the observed wavelength range of this skewer
             for i in range(len(redshifts)):
                 if wave_min < lam_max[i] and wave_max > lam_min[i]:
                     self.z_bins.append(float(redshifts[i]))
                     self.z_bins_width.append(float(redshift_bins[i]))
 
+        
         def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
-
+            # function to map the sightline to the FFT grid, wave_fft_grid and mask_fft_grid are the observed wavelength and the mask mapped to the FFT grid, respectively.
             
             delta_fft_grid = np.zeros(N_fft)
             weight_fft_grid = np.zeros(N_fft)
@@ -85,9 +88,9 @@ def create_skewer_class():
 
             weight_fft_grid *= mask_fft_grid
              
-            self.delta_fft_grid = delta_fft_grid
-            self.weight_fft_grid = weight_fft_grid
-            self.mask_fft_grid = mask_fft_grid
+            self.delta_fft_grid = delta_fft_grid # real space delta in FFT grid
+            self.weight_fft_grid = weight_fft_grid # real space weight in FFT grid
+            self.mask_fft_grid = mask_fft_grid # real space mask in FFT grid 
             
             return None 
                                
@@ -95,12 +98,16 @@ def create_skewer_class():
 
 
 def get_p1d(all_skewers,wave_fft_grid,mask_fft_grid):
+    
     p1d = np.zeros(N_fft)
-    p1d = np.zeros(N_fft)
+    
     for skewer in all_skewers:
+        # map the sightline onto the FFT grid
         skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
+
         delta = skewer.delta_fft_grid
         weight = skewer.weight_fft_grid
+        
         fft_weighted_delta = np.fft.fft(delta * weight)
         p1d += np.abs(fft_weighted_delta)**2
 

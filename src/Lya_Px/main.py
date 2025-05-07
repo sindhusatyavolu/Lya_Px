@@ -24,30 +24,28 @@ def main():
     print('{:.3f} < z < {:.3f}'.format(wave_desi_min/LAM_LYA-1, wave_desi_max/LAM_LYA-1))
     wave_desi=np.linspace(wave_desi_min,wave_desi_max,wave_desi_N+1)
     
-    # Get theta bins 
+    # Get theta bins in which Px will be measured
     theta_min_array = theta_array[:,0]*ARCMIN_TO_RAD
     theta_max_array = theta_array[:,1]*ARCMIN_TO_RAD  
 
-    args = [(hp, z_alpha, dz, theta_min_array, theta_max_array, wave_desi) for hp in healpixlist]
+    args = [(hp, z_alpha, dz, theta_min_array, theta_max_array, wave_desi) for hp in healpixlist] # z_alpha and dz are the redshift bin and bin widths, hp is the healpix number
 
     # Use multiprocessing to compute px for each healpix
     with Pool(ncpus) as pool:
         results = pool.starmap(compute_px, args)
     
-    k_arr, px_avg, px_var, px_weights, p1d_avg = avg_over_healpixels(results)
+    k_arr, px_avg, px_var, px_weights, p1d_avg = avg_over_healpixels(results)  # average over healpixels
 
     save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output_path, healpixlist)
 
 
 
 if __name__=="__main__":
-    #main()
-
-    #main()
-    with cProfile.Profile() as pr:
-        main()
-    stats = pstats.Stats(pr)
-    stats.sort_stats("time").print_stats(50)
+    main()
+    #with cProfile.Profile() as pr:
+    #    main()
+    #stats = pstats.Stats(pr)
+    #stats.sort_stats("time").print_stats(50)
 
 
 

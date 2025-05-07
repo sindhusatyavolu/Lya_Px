@@ -4,9 +4,10 @@ from Lya_Px.auxiliary import angular_separation
 
 def get_px(all_skewers,theta_min,theta_max):
     
-    #for skewer in all_skewers:
-    #    if skewer.delta_fft_data is None:
-    #        skewer.map_to_fftgrid(wave_fft_grid)
+    # to map the sightlines onto the FFT grid 
+    for skewer in all_skewers:
+        if skewer.delta_fft_data is None:
+            skewer.map_to_fftgrid(wave_fft_grid)
 
     px_ft = np.zeros(N_fft)
     # mean of w_m v_m^* (product of FFT of masks)
@@ -32,8 +33,9 @@ def get_px(all_skewers,theta_min,theta_max):
                     weighted_delta2_ft = np.fft.fft(weighted_delta2)
 
                     # compute the products
-                    products.append((weighted_delta1_ft*np.conj(weighted_delta2_ft)).real)
-                    px_ft += (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real
+                    px_sum = (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real    
+                    products.append(px_sum)
+                    px_ft += px_sum
                     fft_weight1 = np.fft.fft(weight1)
                     fft_weight2 = np.fft.fft(weight2)
                     products_weight.append((fft_weight1*np.conjugate(fft_weight2)).real)   
