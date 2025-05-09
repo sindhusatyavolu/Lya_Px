@@ -34,9 +34,9 @@ def main():
     with Pool(ncpus) as pool:
         results = pool.starmap(compute_px, args)
     
-    k_arr, px_avg, px_var, px_weights, p1d_avg = avg_over_healpixels(results)  # average over healpixels
+    k_arr, px_avg, px_var, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  # average over healpixels
 
-    save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output_path, healpixlist)
+    save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist)
 
 
 

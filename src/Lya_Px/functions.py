@@ -166,6 +166,7 @@ def avg_over_healpixels(results):
     px_avg = {}
     px_var = {}
     p1d_avg = {}
+    covariance = {}
     for key in px_all:
         stacked = np.stack(px_all[key])
         stacked_weights = np.stack(px_weights_all[key])
@@ -173,4 +174,5 @@ def avg_over_healpixels(results):
         px_var[key] = np.var(stacked, axis=0)
         px_weights[key] = np.var(stacked_weights, axis=0)  # count non-zero elements
         p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
-    return k_arr, px_avg, px_var, px_weights, p1d_avg
+        covariance[key] = np.cov(stacked, rowvar=False) 
+    return k_arr, px_avg, px_var, px_weights, p1d_avg, covariance
