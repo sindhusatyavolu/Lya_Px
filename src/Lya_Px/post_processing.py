@@ -36,6 +36,7 @@ def main():
         px = []
         px_var = []
         px_weights = []
+        px_cov = []
         theta_bins = []
         # sort only the theta_* groups
         theta_keys = sorted([key for key in f.keys() if key.startswith('theta_')],
@@ -46,6 +47,7 @@ def main():
             px.append(g['px'][:])
             px_var.append(g['px_var'][:])
             px_weights.append(g['px_weights'][:])
+            px_cov.append(g['covariance'][:])
             theta_bins.append((g.attrs['theta_min'], g.attrs['theta_max']))
     
     
@@ -53,8 +55,10 @@ def main():
     px_norm = np.array(px)
     px_var = np.array(px_var)
     px_weights = np.array(px_weights)
+    px_cov = np.array(px_cov)
     N_fft = len(k_arr)
     print(np.shape(px_norm))
+    print(np.shape(px_cov)) # should be N_fft x N_fft
 
     #plt.plot(k_arr[:N_fft//2],px_norm[0][:N_fft//2])
     #plt.plot(k_arr[:N_fft//2],px_norm[1][:N_fft//2])
