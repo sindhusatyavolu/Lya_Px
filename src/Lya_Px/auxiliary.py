@@ -20,7 +20,7 @@ def wave_to_velocity(wave):
 # anglular separation to transverse distance conversion
 
 # save outputs
-def save_to_hdf5(filename,z,dz,px,cov,k_arr,theta_min_array,theta_max_array,px_var,px_weights,p1d):
+def save_to_hdf5(filename,z,dz,px,k_arr,theta_min_array,theta_max_array,px_var,px_cov,px_weights,p1d):
     with h5py.File(filename, 'w') as f:
         # shared data
         f.create_dataset('k_arr', data=k_arr)
@@ -36,13 +36,13 @@ def save_to_hdf5(filename,z,dz,px,cov,k_arr,theta_min_array,theta_max_array,px_v
             g.create_dataset('px', data=px[i])
             g.create_dataset('px_var', data=px_var[i])
             g.create_dataset('px_weights', data=px_weights[i])
-            g.create_dataset('covariance', data=cov[i])
+            g.create_dataset('covariance', data=px_cov[i])
             g.attrs['theta_min'] = theta_min_array[i]
             g.attrs['theta_max'] = theta_max_array[i]
 
     return None
 
-def save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output_path, healpixlist):
+def save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist):
     for z_bin in range(len(z_alpha)):
         # Pull out all keys that match this z_bin
         matching_keys = [key for key in px_avg if np.isclose(key[0], float(z_alpha[z_bin]))]
@@ -52,6 +52,7 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output
         px_data    = [px_avg[key] for key in matching_keys]
         px_vars    = [px_var[key] for key in matching_keys]
         px_weights_data = [px_weights[key] for key in matching_keys]
+        px_cov    = [covariance[key] for key in matching_keys]
         p1d = [p1d_avg[z_alpha[z_bin]]]
 
         filename = output_path + f'px-nhp_{len(healpixlist)}_zbin_{z_alpha[z_bin]:.1f}.hdf5'
@@ -65,6 +66,7 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, k_arr, z_alpha, dz, output
             theta_mins,
             theta_maxs,
             px_vars,
+            px_cov,
             px_weights_data,
             p1d
         )

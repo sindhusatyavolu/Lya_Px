@@ -41,7 +41,7 @@ def get_px(all_skewers,theta_min,theta_max):
     #print('variance and mean computed',px_ave)
     w_v_m = np.mean(products_weight,axis=0)
     #print('mean of product of fft of weights computed',w_v_m)   
-    print(len(products),'Number of pairs')
+    #print(len(products),'Number of pairs')
     return px_ft/len(products), w_v_m, px_var,px_ave,len(products)
 
 
