@@ -41,11 +41,10 @@ def main():
 
 
 if __name__=="__main__":
-    main()
-    #with cProfile.Profile() as pr:
-    #    main()
-    #stats = pstats.Stats(pr)
-    #stats.sort_stats("time").print_stats(50)
+    with cProfile.Profile() as pr:
+        main()
+    stats = pstats.Stats(pr)
+    stats.sort_stats("time").print_stats(50)
 
 
 
