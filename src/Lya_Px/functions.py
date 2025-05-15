@@ -2,7 +2,7 @@ import numpy as np
 from Lya_Px.params import *
 from Lya_Px.auxiliary import angular_separation
 from astropy.io import fits
-import argparse
+# import argparse
 from collections import defaultdict
 import fitsio
 
@@ -91,7 +91,7 @@ def create_skewer_class():
             self.delta_fft_grid = delta_fft_grid # real space delta in FFT grid
             self.weight_fft_grid = weight_fft_grid # real space weight in FFT grid
             self.mask_fft_grid = mask_fft_grid # real space mask in FFT grid 
-            
+            self.pw_A = pw_A
             return None 
                                
     return Skewers
@@ -166,11 +166,51 @@ def avg_over_healpixels(results):
     px_avg = {}
     px_var = {}
     p1d_avg = {}
+    px_avg_weights = {}
     for key in px_all:
         stacked = np.stack(px_all[key])
         stacked_weights = np.stack(px_weights_all[key])
         px_avg[key] = np.mean(stacked, axis=0)
         px_var[key] = np.var(stacked, axis=0)
-        px_weights[key] = np.var(stacked_weights, axis=0)  # count non-zero elements
+        px_avg_weights[key] = np.mean(stacked_weights, axis=0)  # count non-zero elements
         p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
-    return k_arr, px_avg, px_var, px_weights, p1d_avg
+    return k_arr, px_avg, px_var, px_avg_weights, p1d_avg
+
+
+def calculate_estnorm(W, R, L):
+    '''
+    W (np.ndarray): vector length N, average FFT of the weights
+    R (np.ndarray): vector length N, resolution in Fourier space
+    L (float): length of the spectra (in physical units, e.g. Angstroms or Mpc)
+    Returns:
+    estnorm (np.ndarray): vector length N, to be multiplied by every P1D mode of the measurement
+    '''
+    R2 = R.real**2 + R.imag**2
+    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))
+    estnorm = np.absolute(L/denom)
+    return estnorm
+
+def calculate_window_matrix(W, R, L):
+
+    '''
+    W (np.ndarray): average of (w1) conj(w2) where w1 and w2 are FFT of original weights per skewer
+    R (np.ndarray): vector length N, resolution in Fourier space
+    L (float): physical length of skewers (e.g., in Angstroms)
+    Returns:
+    window_matrix (np.ndarray): window matrix to be convolved with pure theory
+    estnorm (np.ndarray): vector length N, to be multiplied by every P1D mode of the measurement
+    '''
+    R2 = R.real**2 + R.imag**2
+    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))
+    estnorm = np.absolute(L/denom)
+    N = estnorm.size
+    window_matrix = np.zeros((N,N))
+    for m in range(N):
+        for n in range(N):
+            window_matrix[m,n] = W[m-n]*R2[n] / denom[m]
+    return window_matrix, estnorm
+
+
+def masked_theory(window_matrix, model):
+    return np.matmul(window_matrix, model)
+    

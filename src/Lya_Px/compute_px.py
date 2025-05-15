@@ -57,12 +57,11 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             no_of_pairs = result[4]
             if no_of_pairs == 0:
                 continue
-
-            px = result[0] * (pw_A / N_fft)  # normalize
+            px = result[0] # * (pw_A / N_fft)  # normalize
             z_bin = z_alpha[z]
             theta_bin = (theta_min_array[theta], theta_max_array[theta])
             result_dict[(z_bin, theta_bin)] = px
-            px_weights[(z_bin, theta_bin)] = result[1]
+            px_weights[(z_bin, theta_bin)] = result[1] # * (pw_A / N_fft)  # normalize
             p1d_dict[z_bin] = p1d_norm
 
     

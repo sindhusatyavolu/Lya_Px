@@ -23,9 +23,11 @@ dz = redshifts[:,1] # redshift bin width
 theta_array = np.loadtxt(theta_file, skiprows=1)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
+gauss_test = config.getboolean("parameters","gauss_test")
 
 n_healpix = config.getint("parameters", "n_healpix")
-#healpixlist = healpixlist[-1:]
+ncpus = config.getint("parameters", "ncpus")
+healpixlist = healpixlist[:n_healpix]
 
 # Load constants
 LAM_LYA = config.getfloat("constants", "LAM_LYA")
