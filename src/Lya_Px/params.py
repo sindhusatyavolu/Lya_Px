@@ -25,6 +25,7 @@ theta_array = np.loadtxt(theta_file, skiprows=1)
 theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
+gauss_test = config.getboolean("parameters","gauss_test")
 
 all_healpix = config.getboolean("parameters", "all_healpix")
 if not all_healpix:
