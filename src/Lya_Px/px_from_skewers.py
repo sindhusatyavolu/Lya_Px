@@ -2,7 +2,7 @@ import numpy as np
 from Lya_Px.params import *
 from Lya_Px.auxiliary import angular_separation
 if gauss_test:
-    from Lya_Px.skewer_maker import SkewerMaker
+    from Lya_Px.gaussian_skewer_maker import SkewerMaker
     from Lya_Px.input_power import InputPower
 
 def get_px(all_skewers,theta_min,theta_max):
@@ -24,7 +24,7 @@ def get_px(all_skewers,theta_min,theta_max):
     w_v_m=np.zeros(N_fft)
     if gauss_test:
         # Generate fake input power spectrum
-        input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)
+        input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
         # read the skewer details from the first one, assuming all are equal-sized
         Npix = all_skewers[0].delta_fft_grid.size
         L_wave = all_skewers[0].pw_A * Npix
@@ -50,29 +50,28 @@ def get_px(all_skewers,theta_min,theta_max):
                     # weight2 = weight1 # uncomment if you want equal weighting for all pixels
                     weighted_delta1 = g_skewer_1 * weight1
                     weighted_delta2 = g_skewer_2 * weight2
-                    
+                    #print('weighted delta1',np.nonzero(weighted_delta1))
                 else:
                     weighted_delta1 = delta1*weight1
                     weighted_delta2 = delta2*weight2
 
-                    # FT of weighted delta
-                    weighted_delta1_ft = np.fft.fft(weighted_delta1)
-                    weighted_delta2_ft = np.fft.fft(weighted_delta2)
+                # FT of weighted delta
+                weighted_delta1_ft = np.fft.fft(weighted_delta1)
+                weighted_delta2_ft = np.fft.fft(weighted_delta2)
 
-                    # compute the product of the FT of the weighted delta 1 with the conjugate of the FT of the weighted delta 2 and take the real part
-                    px_sum = (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real    
-                    products.append(px_sum)
-                    px_ft += px_sum
-                    # compute the product of the FT of the weights 1 with the conjugate of the FT of the weights 2
-                    fft_weight1 = np.fft.fft(weight1)
-                    fft_weight2 = np.fft.fft(weight2)
-                    products_weight.append((fft_weight1*np.conjugate(fft_weight2)).real)   
-                    
-    
+                # compute the product of the FT of the weighted delta 1 with the conjugate of the FT of the weighted delta 2 and take the real part
+                px_sum = (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real    
+                products.append(px_sum)
+                px_ft += px_sum
+                # compute the product of the FT of the weights 1 with the conjugate of the FT of the weights 2
+                fft_weight1 = np.fft.fft(weight1)
+                fft_weight2 = np.fft.fft(weight2)
+                products_weight.append((fft_weight1*np.conjugate(fft_weight2)).real)   
+                
     # compute the variance of the products
     px_var = np.var(products,axis=0)
     #px_ave = np.mean(products,axis=0)
-    #print('variance and mean computed',px_ave)
+    #print('variance and mean computed',px_var)
     
     w_v_m = np.mean(products_weight,axis=0)
     #print('mean of product of fft of weights computed',w_v_m)   
