@@ -1,12 +1,8 @@
 import numpy as np
-from astropy.io import fits
-import matplotlib.pyplot as plt
-import sys
-import h5py
 from Lya_Px.params import *
-from Lya_Px.functions import get_skewers, create_skewer_class, get_p1d
-from Lya_Px.px_from_pix import get_px
-from Lya_Px.auxiliary import angular_separation,save_to_hdf5,wave_to_velocity
+from Lya_Px.make_skewers import get_skewers
+from Lya_Px.compute_p1d import get_p1d
+from Lya_Px.px_from_skewers import get_px
 
 
 def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi):    
