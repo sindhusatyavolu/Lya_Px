@@ -3,7 +3,18 @@ from Lya_Px.params import *
 from Lya_Px.auxiliary import angular_separation
 
 def get_px(all_skewers,theta_min,theta_max):
+    '''
+    Function to compute Px for given redshift and theta bin
+    all_skewers (list): list of Skewers objects, each containing the data for a single sightline and which redshift bin they belong to
+    theta_min (float): minimum angular separation in radians
+    theta_max (float): maximum angular separation in radians
+    Returns:
+    px_ft (np.ndarray): 1D array of shape (N_FFT,), average of the product of the FFT of the delta over all sightlines in the FFT grid which is the dimensionless Px
+    w_v_m (np.ndarray): 1D array of shape (N_FFT,), average of the product of the FFT of the weights over all sightlines in the FFT grid
+    px_var (np.ndarray): 1D array of shape (N_FFT,), variance of the product of the FFT of the delta over all sightlines in the FFT grid
+    len(products) (int): number of pairs of sightlines that were used to compute the Px
 
+    '''
     px_ft = np.zeros(N_fft)
     # mean of w_m v_m^* (product of FFT of masks)
     # w_v_m = (w_m v_m^*).real (product of FFT mask, real part only)
@@ -27,22 +38,26 @@ def get_px(all_skewers,theta_min,theta_max):
                     weighted_delta1_ft = np.fft.fft(weighted_delta1)
                     weighted_delta2_ft = np.fft.fft(weighted_delta2)
 
-                    # compute the products
+                    # compute the product of the FT of the weighted delta 1 with the conjugate of the FT of the weighted delta 2 and take the real part
                     px_sum = (weighted_delta1_ft*np.conj(weighted_delta2_ft)).real    
                     products.append(px_sum)
                     px_ft += px_sum
+                    # compute the product of the FT of the weights 1 with the conjugate of the FT of the weights 2
                     fft_weight1 = np.fft.fft(weight1)
                     fft_weight2 = np.fft.fft(weight2)
                     products_weight.append((fft_weight1*np.conjugate(fft_weight2)).real)   
                     
+    
     # compute the variance of the products
     px_var = np.var(products,axis=0)
-    px_ave = np.mean(products,axis=0)
+    #px_ave = np.mean(products,axis=0)
     #print('variance and mean computed',px_ave)
+    
     w_v_m = np.mean(products_weight,axis=0)
     #print('mean of product of fft of weights computed',w_v_m)   
     #print(len(products),'Number of pairs')
-    return px_ft/len(products), w_v_m, px_var,px_ave,len(products)
+    
+    return px_ft/len(products), w_v_m, px_var,len(products)
 
 
 

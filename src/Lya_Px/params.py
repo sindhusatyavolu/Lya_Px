@@ -17,15 +17,22 @@ theta_file = config.get("parameters", "theta_file")
 deltas_path = config.get("parameters", "deltas_path")
 
 redshifts = np.loadtxt(redshifts_file,skiprows=1) # redshifts and redshift bin widths
+redshifts = np.atleast_2d(redshifts)
 z_alpha = redshifts[:,0] # redshift bin center
 dz = redshifts[:,1] # redshift bin width
 
 theta_array = np.loadtxt(theta_file, skiprows=1)
+theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
 
-n_healpix = config.getint("parameters", "n_healpix")
-#healpixlist = healpixlist[-1:]
+all_healpix = config.getboolean("parameters", "all_healpix")
+if not all_healpix:
+        n_healpix = config.getint("parameters", "n_healpix")
+        print('read number of healpixels')
+        healpixlist = healpixlist[:n_healpix]
+
+ncpus = config.getint("parameters", "ncpus")
 
 # Load constants
 LAM_LYA = config.getfloat("constants", "LAM_LYA")

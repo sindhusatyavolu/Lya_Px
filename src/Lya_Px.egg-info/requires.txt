@@ -3,3 +3,4 @@ matplotlib
 astropy
 h5py
 argparse
+fitsio

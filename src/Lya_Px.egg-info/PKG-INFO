@@ -10,6 +10,7 @@ Requires-Dist: matplotlib
 Requires-Dist: astropy
 Requires-Dist: h5py
 Requires-Dist: argparse
+Requires-Dist: fitsio
 Dynamic: license-file
 
 # Lya_Px

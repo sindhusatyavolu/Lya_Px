@@ -9,11 +9,25 @@ from Lya_Px.px_from_pix import get_px
 from Lya_Px.auxiliary import angular_separation,save_to_hdf5,wave_to_velocity
 
 
-def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi):
+def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi):    
+    '''
+    healpix (int): integer, healpix pixel number 
+    z_alpha (np.ndarray): 1D array of shape (N,), redshift bin centers (unitless)
+    dz (np.ndarray): 1D array of shape (N,), redshift bin widths (unitless)
+    theta_min_array (np.ndarray): 1D array of shape (M,), minimum angular separations in radians
+    theta_max_array (np.ndarray): 1D array of shape (M,), maximum angular separations in radians
+    wave_desi (np.ndarray): 1D array of shape (L,), DESI observed wavelength grid in Angstrom
+    Returns:
+    k_arr (np.ndarray): 1D array of shape (N_FFT), k-space grid in 1/A
+    result_dict (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as dimensionless Px arrays of shape (N_FFT)
+    p1d_dict (dict): dictionary with keys as z_bin and values as P1D array of shape (N_FFT)
+    px_weights (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as Px of weights of shape (N_FFT)
+
+    '''
     print('healpix = ', healpix)
     wave_desi_min = wave_desi[0]
     
-    # get sightlines in each healpix pixel, and the redshift bins which they belong to
+    # get list of sightline objects in each healpix pixel, which includes the redshift bins which they belong to
     skewers = get_skewers(healpix, deltas_path)
     
     result_dict = {}  # key = (z, θmin, θmax), value = Px array
@@ -49,22 +63,25 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             # map the sightline onto the FFT grid
             skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
 
-        # (optional) compute P1D here if needed
+        # compute P1D 
         p1d,p1d_norm = get_p1d(all_skewers)
 
         for theta in range(len(theta_min_array)):
+            # measure Px
             result = get_px(all_skewers, theta_min_array[theta], theta_max_array[theta])
-            no_of_pairs = result[4]
+            # check if there are any pairs of sightlines in this theta bin
+            no_of_pairs = result[3]
             if no_of_pairs == 0:
                 continue
-
-            px = result[0] * (pw_A / N_fft)  # normalize
+            
+            # create keys for Px dict    
             z_bin = z_alpha[z]
             theta_bin = (theta_min_array[theta], theta_max_array[theta])
-            result_dict[(z_bin, theta_bin)] = px
-            px_weights[(z_bin, theta_bin)] = result[1]
-            p1d_dict[z_bin] = p1d_norm
 
+            # store Px and weights in dicts for each z_bin and theta bin
+            result_dict[(z_bin, theta_bin)] = result[0] # dimensionles Px; has to be normalized 
+            px_weights[(z_bin, theta_bin)] = result[1]  # Px of weights for normalization
+            p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
     
     return k_arr, result_dict, p1d_dict ,px_weights
 

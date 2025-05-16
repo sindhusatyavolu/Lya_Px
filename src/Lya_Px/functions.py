@@ -7,6 +7,14 @@ from collections import defaultdict
 import fitsio
 
 def get_skewers(healpix,deltas_path):
+    '''
+    healpix (int): integer, healpix pixel number 
+    deltas_path (str): path to the directory containing the delta files
+    Returns:
+    skewers (list): list of Skewers objects, each containing the data for a single sightline
+
+    '''
+
     # read skewers from the healpix pixel
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
     
@@ -32,24 +40,37 @@ def get_skewers(healpix,deltas_path):
 def create_skewer_class():
     class Skewers:
         def __init__(self, wave_data, delta_data, weight_data, RA, Dec, z_qso,redshifts,redshift_bins):
+            '''
+            wave_data (np.ndarray): 1D array of shape (N,), observed wavelength in Angstrom
+            delta_data (np.ndarray): 1D array of shape (N,), delta in real space
+            weight_data (np.ndarray): 1D array of shape (N,), weight in real space
+            RA (float): right ascension in radians
+            Dec (float): declination in radians
+            z_qso (float): redshift of the quasar
+            redshifts (np.ndarray): 1D array of shape (M,), redshift bin centers
+            redshift_bins (np.ndarray): 1D array of shape (M,), redshift bin widths
+
+            '''
             self.wave_data = wave_data # observed wavelength in Angstrom
             self.delta_data = delta_data # delta in real space
             self.weight_data = weight_data # weight in real space
+            # Equation 
             self.weight_data *= (self.wave_data/4500)**3.8  
 
-            self.RA = RA  
-            self.Dec = Dec
-            self.z_qso = z_qso
+            self.RA = RA  # radians
+            self.Dec = Dec # radians
+            self.z_qso = z_qso 
             
             wave_min = wave_data[0] 
             wave_max = wave_data[-1]
             
-            lam_bin = LAM_LYA*(1+redshifts)  # redshifts correspond to the center of the redshift bin
-            lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA  # redshift_bins correspond to the width of the redshift bin
+            lam_bin = LAM_LYA*(1+redshifts)  
+            lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA  
             lam_max = lam_bin + 0.5*redshift_bins*LAM_LYA 
             
             self.z_bins = []
             self.z_bins_width = []
+
             # find the redshift bins that overlap with the observed wavelength range of this skewer
             for i in range(len(redshifts)):
                 if wave_min < lam_max[i] and wave_max > lam_min[i]:
@@ -58,7 +79,14 @@ def create_skewer_class():
 
         
         def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
-            # function to map the sightline to the FFT grid, wave_fft_grid and mask_fft_grid are the observed wavelength and the mask mapped to the FFT grid, respectively.
+            '''
+            Function to map sightline to the FFT grid
+            wave_fft_grid (np.ndarray): 1D array of shape (N_FFT,), FFT grid in observed wavelength
+            mask_fft_grid (np.ndarray): 1D array of shape (N_FFT,), mask in the FFT grid
+            delta_fft_grid (np.ndarray): 1D array of shape (N_FFT,), deltas in the FFT grid, array elements are zeroed out if they fall outside the redshift bin wavelength range
+            weight_fft_grid (np.ndarray): 1D array of shape (N_FFT,), weight in the FFT grid corresponding to deltas
+            
+            '''
             
             delta_fft_grid = np.zeros(N_fft)
             weight_fft_grid = np.zeros(N_fft)
@@ -98,6 +126,14 @@ def create_skewer_class():
 
 
 def get_p1d(all_skewers):
+    '''
+    Function to compute the 1D power spectrum from the skewers in the given redshift bin
+    all_skewers (list): list of Skewers objects, each containing the data for a single sightline and which redshift bin they belong to
+    Returns:
+    p1d (np.ndarray): 1D array of shape (N_FFT,), dimensionless P1D in the FFT grid
+    p1d_norm (np.ndarray): 1D array of shape (N_FFT,), normalized P1D in the FFT grid
+
+    '''
     
     p1d = np.zeros(N_fft)
     
@@ -152,14 +188,41 @@ def create_fft_grid(wave_desi_min,z_alpha,dz,wave_desi_N,wave_desi):
 
     return fft_grid
 
+def calculate_estnorm(W, R, L):
+    '''
+    W (np.ndarray): vector length N, average FFT of the weights
+    R (np.ndarray): vector length N, resolution in Fourier space
+    L (float): length of the spectra (in physical units, e.g. Angstroms or Mpc)
+    Returns:
+    estnorm (np.ndarray): vector length N, to be multiplied by every P1D mode of the measurement
+    '''
+    R2 = R.real**2 + R.imag**2
+    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))
+    estnorm = np.absolute(L/denom)
+    return estnorm
+
 
 def avg_over_healpixels(results):
+    '''
+    Gather results from all healpixels and average over them
+    results (list): list of tuples, each containing the results from a single healpix
+    Returns:
+    k_arr (np.ndarray): 1D array of shape (N_FFT,), k-space grid in 1/A
+    px_avg (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as dimensionless Px arrays of shape (N_FFT)
+    px_var (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as variance of Px arrays of shape (N_FFT)
+    px_weights (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as Px of weights of shape (N_FFT)
+    p1d_avg (dict): dictionary with keys as z_bin and values as P1D array of shape (N_FFT)
+    covariance (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as covariance matrix of Px arrays of shape (N_FFT, N_FFT)
+
+    '''
     px_all = defaultdict(list)  # key = (z, theta_bin), value = list of Px arrays
     px_weights_all = defaultdict(list)  
     p1d_all = defaultdict(list)
+
+    # accumulate results in only redshift and theta bins that exist for each healpixel
     for k_arr, px_dict,p1d_dict, px_weights in results:
         for key in px_dict:
-            px_all[key].append(px_dict[key])  # accumulate only bins that exist
+            px_all[key].append(px_dict[key])  
             px_weights_all[key].append(px_weights[key])
             p1d_all[key[0]].append(p1d_dict[key[0]])
 
@@ -168,11 +231,14 @@ def avg_over_healpixels(results):
     p1d_avg = {}
     covariance = {}
     for key in px_all:
-        stacked = np.stack(px_all[key])
+        # stack by healpix
+        stacked = np.stack(px_all[key]) 
         stacked_weights = np.stack(px_weights_all[key])
+        # average over healpixels
         px_avg[key] = np.mean(stacked, axis=0)
         px_var[key] = np.var(stacked, axis=0)
-        px_weights[key] = np.var(stacked_weights, axis=0)  # count non-zero elements
+        px_weights[key] = np.mean(stacked_weights, axis=0)  
         p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
         covariance[key] = np.cov(stacked, rowvar=False) 
+    
     return k_arr, px_avg, px_var, px_weights, p1d_avg, covariance
