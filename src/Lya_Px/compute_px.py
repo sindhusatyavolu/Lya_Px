@@ -18,6 +18,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     result_dict (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as dimensionless Px arrays of shape (N_FFT)
     p1d_dict (dict): dictionary with keys as z_bin and values as P1D array of shape (N_FFT)
     px_weights (dict): dictionary with keys as tuples (z_bin, theta_bin) and values as Px of weights of shape (N_FFT)
+    no_of_pairs (int): number of pairs of sightlines that were used to compute the Px
 
     '''
     print('healpix = ', healpix)
@@ -29,6 +30,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     result_dict = {}  # key = (z, θmin, θmax), value = Px array
     px_weights = {}
     p1d_dict = {}
+    npairs = {}
 
     for z in range(len(z_alpha)):
         # wavelength range covered by this redshift bin
@@ -75,7 +77,8 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             result_dict[(z_bin, theta_bin)] = result[0] # dimensionles Px; has to be normalized 
             px_weights[(z_bin, theta_bin)] = result[1]  # Px of weights for normalization
             p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
+            npairs[(z_bin, theta_bin)] = no_of_pairs # number of pairs of sightlines in this theta bin
     
-    return k_arr, result_dict, p1d_dict ,px_weights
+    return k_arr, result_dict, p1d_dict ,px_weights, npairs
 
 

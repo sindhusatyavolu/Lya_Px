@@ -19,13 +19,15 @@ def avg_over_healpixels(results):
     px_all = defaultdict(list)  # key = (z, theta_bin), value = list of Px arrays
     px_weights_all = defaultdict(list)  
     p1d_all = defaultdict(list)
+    no_of_pairs = defaultdict(list)  
 
     # accumulate results in only redshift and theta bins that exist for each healpixel
-    for k_arr, px_dict,p1d_dict, px_weights in results:
+    for k_arr, px_dict,p1d_dict, px_weights, npairs in results:
         for key in px_dict:
             px_all[key].append(px_dict[key])  
             px_weights_all[key].append(px_weights[key])
             p1d_all[key[0]].append(p1d_dict[key[0]])
+            no_of_pairs[key].append(npairs[key])
 
     px_avg = {}
     px_var = {}
@@ -33,16 +35,21 @@ def avg_over_healpixels(results):
     covariance = {}
     px_avg_weights = {}
     for key in px_all:
+        #print(key)
+        #print('no_of_pairs = ', no_of_pairs[key])
+        #print('px_all = ', np.average(np.stack(px_all[key]), axis=0, weights=no_of_pairs[key])) 
+        #print('px_all = ', np.average(np.stack(px_all[key]), axis=0, weights=[1,1,1]))
+        #print('px_all = ', np.mean(np.stack(px_all[key]), axis=0)) 
+ 
         # stack by healpix
-        stacked = np.stack(px_all[key]) 
+        stacked = np.stack(px_all[key])
         stacked_weights = np.stack(px_weights_all[key])
         # average over healpixels
-        px_avg[key] = np.mean(stacked, axis=0)
-        px_var[key] = np.var(stacked, axis=0)
-        px_weights[key] = np.mean(stacked_weights, axis=0)  
-        px_avg_weights[key] = np.mean(stacked_weights, axis=0)  # count non-zero elements
+        px_avg[key] = np.average(stacked, axis=0, weights=no_of_pairs[key]) # weighted average        
+        px_var[key] = np.var(stacked, axis=0) # not weighted
+        px_avg_weights[key] = np.average(stacked_weights, axis=0,weights=no_of_pairs[key])  # weighted average
         p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
-        covariance[key] = np.cov(stacked, rowvar=False) 
+        covariance[key] = np.cov(stacked, rowvar=False,aweights=no_of_pairs[key])  # covariance matrix of Px arrays
     
     return k_arr, px_avg, px_var, px_avg_weights, p1d_avg, covariance
 
