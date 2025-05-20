@@ -42,12 +42,9 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         # FFT grid in k-space, has negative values as well
         k_arr = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
 
-        mask_fft_grid = np.ones(N_fft)
-        # zero out the mask values that fall outside the redshift bin wavelength range
-        j_min = round((lam_min - wave_fft_grid[0]) / pw_A)
-        j_max = round((lam_max - wave_fft_grid[0]) / pw_A)
-        mask_fft_grid[:j_min] = 0
-        mask_fft_grid[j_max:] = 0
+        # create mask for the FFT grid
+        for skewer in skewers:
+            skewer.mask_function(wave_fft_grid, lam_min, lam_max)
 
         # gather the sightlines that fall either partially or completely within the redshift bin wavelength range.
         all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
@@ -57,7 +54,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     
         for skewer in all_skewers:
             # map the sightline onto the FFT grid
-            skewer.map_to_fftgrid(wave_fft_grid,mask_fft_grid)
+            skewer.map_to_fftgrid(wave_fft_grid)
 
         # compute P1D 
         p1d,p1d_norm = get_p1d(all_skewers)

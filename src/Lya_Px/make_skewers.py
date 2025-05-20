@@ -76,7 +76,7 @@ def create_skewer_class():
                     self.z_bins_width.append(float(redshift_bins[i]))
 
         
-        def map_to_fftgrid(self,wave_fft_grid,mask_fft_grid):
+        def map_to_fftgrid(self,wave_fft_grid):
             '''
             Function to map sightline to the FFT grid
             wave_fft_grid (np.ndarray): 1D array of shape (N_FFT,), FFT grid in observed wavelength
@@ -112,13 +112,31 @@ def create_skewer_class():
                 weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
 
 
-            weight_fft_grid *= mask_fft_grid
+            weight_fft_grid *= self.mask_fft_grid
              
             self.delta_fft_grid = delta_fft_grid # real space delta in FFT grid
             self.weight_fft_grid = weight_fft_grid # real space weight in FFT grid
-            self.mask_fft_grid = mask_fft_grid # real space mask in FFT grid 
+            #self.mask_fft_grid = mask_fft_grid # real space mask in FFT grid 
             self.pw_A = pw_A
             return None 
+        
+        def mask_function(self,wave_fft_grid,lam_min,lam_max):
+            '''
+            Function to create mask for the FFT grid
+            wave_fft_grid (np.ndarray): 1D array of shape (N_FFT,), FFT grid in observed wavelength
+            lam_min (float): minimum wavelength of the redshift bin in Angstrom
+            lam_max (float): maximum wavelength of the redshift bin in Angstrom
+            mask_fft_grid (np.ndarray): 1D array of shape (N_FFT,), mask in the FFT grid
+    
+            ''' 
+            self.mask_fft_grid = np.ones(N_fft)
+            # zero out the mask values that fall outside the redshift bin wavelength range
+            j_min = round((lam_min - wave_fft_grid[0]) / pw_A)
+            j_max = round((lam_max - wave_fft_grid[0]) / pw_A)
+            self.mask_fft_grid[:j_min] = 0
+            self.mask_fft_grid[j_max:] = 0
+            return None
+
                                
     return Skewers
 
