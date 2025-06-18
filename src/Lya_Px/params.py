@@ -15,6 +15,7 @@ redshifts_file = config.get("parameters", "redshifts")
 output_path = config.get("parameters", "output_path")
 theta_file = config.get("parameters", "theta_file")
 deltas_path = config.get("parameters", "deltas_path")
+mocks = config.get("parameters", "mocks")
 
 redshifts = np.loadtxt(redshifts_file,skiprows=1) # redshifts and redshift bin widths
 redshifts = np.atleast_2d(redshifts)

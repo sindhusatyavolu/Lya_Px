@@ -40,13 +40,20 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         
         # define FFT grid as N_FFT pixels in the DESI wavelength grid, centered on the center of the redshift bin. Note that the FFT grid can be larger the DESI grid in the redshift bin
         i_cen = round((lam_cen - wave_desi_min) / pw_A)
+        i_min = round((lam_min - wave_desi_min) / pw_A)
+        i_max = round((lam_max - wave_desi_min) / pw_A)       
+        #N_fft = 2*len(wave_desi[i_min:i_max])
+        if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > 5000:
+            print('FFT grid is out of bounds, try different N_fft')
+            exit(1) 
+
         wave_fft_grid = wave_desi[i_cen - N_fft//2 : i_cen + N_fft//2]
         # FFT grid in k-space, has negative values as well
         k_arr = np.fft.fftfreq(N_fft)*2*np.pi/pw_A
 
         # create mask for the FFT grid
         for skewer in skewers:
-            skewer.mask_function(wave_fft_grid, lam_min, lam_max)
+            skewer.mask_function(wave_fft_grid, lam_min, lam_max,N_fft)
 
         # gather the sightlines that fall either partially or completely within the redshift bin wavelength range.
         all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
@@ -56,10 +63,10 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     
         for skewer in all_skewers:
             # map the sightline onto the FFT grid
-            skewer.map_to_fftgrid(wave_fft_grid)
+            skewer.map_to_fftgrid(wave_fft_grid,N_fft)
 
         # compute P1D 
-        p1d,p1d_norm = get_p1d(all_skewers)
+        p1d,p1d_norm = get_p1d(all_skewers,N_fft)
 
         for theta in range(len(theta_min_array)):
             # measure Px

@@ -21,17 +21,50 @@ def get_skewers(healpix,deltas_path):
 
     f =  fitsio.FITS(delta_file)
 
-    for hdu in range(1,len(f)):
-        RA = f[hdu].read_header()['RA']
-        Dec = f[hdu].read_header()['DEC']
-        z_qso = f[hdu].read_header()['Z']
-        loglam = f[hdu].read()['LOGLAM']
-        wave_data=10.0**(loglam)
-        delta_data=f[hdu].read('DELTA')
-        weight_data=f[hdu].read('WEIGHT')
-        # create skewer object for each sightline in the healpix pixel
-        skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
-        skewers.append(skewer)
+    if mocks == 'data':
+        table_data = f[2].read()
+        #wave_data = f[1].read()
+        delta = f[3].read()
+        weight = f[4].read()     
+        #print(np.shape(wave_data))  
+        #print(np.shape(delta),np.shape(weight))
+        #print(np.shape(table_data))
+        ra = table_data['RA']
+        #print(np.shape(delta[len(ra)-1,:]))
+
+        for i in range(len(ra)):
+            RA  = ra[i]
+            Dec = table_data['DEC'][i]
+            z_qso = table_data['Z'][i]
+            wave_data = f[1].read()            
+            delta_data = delta[i,:]
+            weight_data = weight[i,:]
+            # remove nans from delta_data and weight_data, downsize the arrays to non nan elements
+            mask = np.isfinite(delta_data) & np.isfinite(weight_data)
+            wave_data = wave_data[mask]
+            delta_data = delta_data[mask]
+            weight_data = weight_data[mask]
+            #print(len(delta_data),len(wave_data))
+            assert len(wave_data) == len(delta_data) == len(weight_data)
+            #print(RA, Dec, z_qso)
+            # create skewer object for each sightline in the healpix pixel
+            skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
+            skewers.append(skewer)
+            
+        print('skewers read')
+
+    else:
+        for hdu in range(1,len(f)):
+            RA = f[hdu].read_header()['RA']
+            Dec = f[hdu].read_header()['DEC']
+            z_qso = f[hdu].read_header()['Z']
+            loglam = f[hdu].read()['LOGLAM']
+            wave_data=10.0**(loglam)
+            delta_data=f[hdu].read('DELTA')
+            weight_data=f[hdu].read('WEIGHT')
+            # create skewer object for each sightline in the healpix pixel
+            skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
+            skewers.append(skewer)
    
     return skewers
     
@@ -76,7 +109,7 @@ def create_skewer_class():
                     self.z_bins_width.append(float(redshift_bins[i]))
 
         
-        def map_to_fftgrid(self,wave_fft_grid):
+        def map_to_fftgrid(self,wave_fft_grid,N_fft):
             '''
             Function to map sightline to the FFT grid
             wave_fft_grid (np.ndarray): 1D array of shape (N_FFT,), FFT grid in observed wavelength
@@ -97,19 +130,24 @@ def create_skewer_class():
             # figure out whether the spectrum is cut at low-z or at high-z
             loz_cut=False
             hiz_cut=False
+            #print(j_min_data,j_max_data,N_fft)
             if j_min_data < 0:
                 loz_cut=True
                 if j_max_data >=0:
                     delta_fft_grid[:j_max_data]=self.delta_data[-j_min_data+1:]
                     weight_fft_grid[:j_max_data]=self.weight_data[-j_min_data+1:]
+                #if j_max_data >= N_fft:
+                #    delta_fft_grid[:]=self.delta_data[-j_min_data+1:-j_min_data+1+N_fft]
+                #    weight_fft_grid[:]=self.weight_data[-j_min_data+1:-j_min_data+1+N_fft]  
             if j_max_data >= N_fft:
                 hiz_cut=True
                 if j_min_data < N_fft:
                     delta_fft_grid[j_min_data:]=self.delta_data[:N_fft-j_max_data-1]
-                    weight_fft_grid[j_min_data:]=self.weight_data[:N_fft-j_max_data-1]
+                    weight_fft_grid[j_min_data:]=self.weight_data[:N_fft-j_max_data-1]              
             if loz_cut==False and hiz_cut==False:
                 delta_fft_grid[j_min_data:j_max_data+1]=self.delta_data
                 weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
+
 
 
             weight_fft_grid *= self.mask_fft_grid
@@ -118,9 +156,11 @@ def create_skewer_class():
             self.weight_fft_grid = weight_fft_grid # real space weight in FFT grid
             #self.mask_fft_grid = mask_fft_grid # real space mask in FFT grid 
             self.pw_A = pw_A
+            #print(delta_fft_grid)
+
             return None 
         
-        def mask_function(self,wave_fft_grid,lam_min,lam_max):
+        def mask_function(self,wave_fft_grid,lam_min,lam_max,N_fft):
             '''
             Function to create mask for the FFT grid
             wave_fft_grid (np.ndarray): 1D array of shape (N_FFT,), FFT grid in observed wavelength

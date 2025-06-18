@@ -6,7 +6,7 @@ from collections import defaultdict
 import fitsio
 
 
-def get_p1d(all_skewers):
+def get_p1d(all_skewers,N_fft):
     '''
     Function to compute the 1D power spectrum from the skewers in the given redshift bin
     all_skewers (list): list of Skewers objects, each containing the data for a single sightline and which redshift bin they belong to
