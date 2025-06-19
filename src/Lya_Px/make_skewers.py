@@ -124,13 +124,31 @@ def create_skewer_class():
 
             # Map the observed spectrum to the FFT grid for this particular redshift bin    
             j_min_data=round((self.wave_data[0]-wave_fft_grid[0])/pw_A)
-            j_max_data=round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
+            j_max_data=  len(self.delta_data) + j_min_data -1  #round((self.wave_data[-1]-wave_fft_grid[0])/pw_A)
             
+            assert len(self.delta_data) == j_max_data - j_min_data + 1
 
             # figure out whether the spectrum is cut at low-z or at high-z
             loz_cut=False
             hiz_cut=False
-            #print(j_min_data,j_max_data,N_fft)
+            print(j_min_data,j_max_data,N_fft)
+            """
+            if j_min_data < 0:
+                loz_cut=True
+                if j_max_data>=0  and j_max_data < N_fft:
+                    delta_fft_grid[:j_max_data] = self.delta_data[-j_min_data:-j_min_data+j_max_data]
+                    weight_fft_grid[:j_max_data] = self.weight_data[-j_min_data:-j_min_data+j_max_data]           
+            if j_max_data > N_fft:
+                hiz_cut=True
+                if j_min_data < N_fft and j_min_data >= 0:
+                    delta_fft_grid[j_min_data:] = self.delta_data[:N_fft-j_min_data]
+                    weight_fft_grid[j_min_data:] = self.weight_data[:N_fft-j_min_data]
+            
+            if loz_cut==False and hiz_cut==False:
+                delta_fft_grid[j_min_data:j_max_data+1] = self.delta_data
+                weight_fft_grid[j_min_data:j_max_data+1] = self.weight_data        
+
+            """
             if j_min_data < 0:
                 loz_cut=True
                 if j_max_data >=0:
@@ -147,7 +165,7 @@ def create_skewer_class():
             if loz_cut==False and hiz_cut==False:
                 delta_fft_grid[j_min_data:j_max_data+1]=self.delta_data
                 weight_fft_grid[j_min_data:j_max_data+1]=self.weight_data
-
+            
 
 
             weight_fft_grid *= self.mask_fft_grid
