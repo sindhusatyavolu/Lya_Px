@@ -1,7 +1,7 @@
 import numpy as np
 from Lya_Px.params import *
 from collections import defaultdict
-
+from Lya_Px.covariance_matrix import compute_cov
 
 def avg_over_healpixels(results):
     '''
@@ -42,15 +42,22 @@ def avg_over_healpixels(results):
         #print('px_all = ', np.mean(np.stack(px_all[key]), axis=0)) 
  
         # stack by healpix
-        stacked = np.stack(px_all[key])
+        stacked_px = np.stack(px_all[key])
         stacked_weights = np.stack(px_weights_all[key])
+        print('shape of stacked_px:', np.shape(stacked_px))
+        print('shape of stacked_weights:', np.shape(stacked_weights))
+
         # average over healpixels
-        px_avg[key] = np.average(stacked, axis=0, weights=no_of_pairs[key]) # weighted average        
-        px_var[key] = np.var(stacked, axis=0) # not weighted
+        px_avg[key] = np.average(stacked_px, axis=0, weights=no_of_pairs[key]) # weighted average        
+        px_var[key] = np.var(stacked_px, axis=0) # not weighted
         px_avg_weights[key] = np.average(stacked_weights, axis=0,weights=no_of_pairs[key])  # weighted average
         p1d_avg[key[0]] = np.mean(np.stack(p1d_all[key[0]]), axis=0)
-        covariance[key] = np.cov(stacked, rowvar=False,aweights=no_of_pairs[key])  # covariance matrix of Px arrays
-    
+
+        #covariance[key] = np.cov(stacked, rowvar=False,aweights=no_of_pairs[key])  # covariance matrix of Px arrays
+
+        covariance[key] = compute_cov(stacked_px, stacked_weights)  # covariance matrix of Px arrays
+        print('shape of covariance matrix:',np.shape(covariance[key]))
+
     return k_arr, px_avg, px_var, px_avg_weights, p1d_avg, covariance
 
 

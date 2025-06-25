@@ -17,7 +17,7 @@ def angular_separation(ra1, dec1, ra2, dec2):
 def wave_to_velocity(wave):
     return (wave - LAM_LYA) / LAM_LYA * c_SI
 
-# anglular separation to transverse distance conversion
+# angular separation to transverse distance conversion
 
 # save outputs
 def save_to_hdf5(filename,z,dz,px,k_arr,theta_min_array,theta_max_array,px_var,px_cov,px_weights,p1d,pw_A):
@@ -80,6 +80,40 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha
     pw_A (float): pixel width in Angstroms
 
     '''
+    filename = output_path + f'px-nhp_{len(healpixlist)}-zbins_{len(z_alpha)}-thetabins_{len(theta_array)}.hdf5'
+
+    with h5py.File(filename, 'w') as f:
+        # shared data
+        f.create_dataset('k_arr', data=k_arr)
+        
+        f.attrs['N_fft'] = len(k_arr)
+        f.attrs['pixel_width_A'] = pw_A
+        #print(len(px_avg), 'z-theta bins found')
+        #print(list(px_avg.keys()))
+        # group for each z and theta bin
+        for i in range(len(px_avg)):
+            z_bin, theta_bin = list(px_avg.keys())[i]
+            theta_min, theta_max = theta_bin
+            g = f.create_group(f'z_{z_bin:.1f}_theta_{theta_min*RAD_TO_ARCMIN:.1f}_{theta_max*RAD_TO_ARCMIN:.1f}')
+            g.create_dataset('p1d',data=p1d_avg[z_bin])
+            g.create_dataset('px', data=px_avg[(z_bin, theta_bin)])
+            g.create_dataset('px_var', data=px_var[(z_bin, theta_bin)])
+            g.create_dataset('px_weights', data=px_weights[(z_bin, theta_bin)])
+            g.create_dataset('covariance', data=covariance[(z_bin, theta_bin)])
+            g.attrs['theta_min'] = theta_min
+            g.attrs['theta_max'] = theta_max
+    
+    """
+        # group for each theta bin
+        for i in range(len(px)):
+            g = f.create_group('theta_%d_%d'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
+            g.create_dataset('px', data=px[i])
+            g.create_dataset('px_var', data=px_var[i])
+            g.create_dataset('px_weights', data=px_weights[i])
+            g.create_dataset('covariance', data=px_cov[i])
+            g.attrs['theta_min'] = theta_min_array[i]
+            g.attrs['theta_max'] = theta_max_array[i]
+
 
     for z_bin in range(len(z_alpha)):
 
@@ -110,6 +144,7 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha
             p1d,
             pw_A
         )
-        print('Saved to', filename)
+    """    
+    print('Saved to', filename)
     return None
 

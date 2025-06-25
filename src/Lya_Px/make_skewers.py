@@ -131,7 +131,7 @@ def create_skewer_class():
             # figure out whether the spectrum is cut at low-z or at high-z
             loz_cut=False
             hiz_cut=False
-            print(j_min_data,j_max_data,N_fft)
+            #print(j_min_data,j_max_data,N_fft)
             """
             if j_min_data < 0:
                 loz_cut=True
