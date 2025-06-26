@@ -27,8 +27,8 @@ def main():
 
     # Use multiprocessing to compute px for each healpix
     with Pool(ncpus) as pool:
-        results = pool.starmap(compute_px, args)
-    
+        results = pool.starmap(compute_px, args)   
+
     # average over healpixels and compute covariance
     k_arr, px_avg, px_var, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  
 

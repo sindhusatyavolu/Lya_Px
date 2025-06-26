@@ -36,8 +36,15 @@ def compute_cov(px, weights):
     num = np.matmul((weights**2).T,weights) + np.matmul(weights.T, weights**2) 
     correction_factor = 1+ np.matmul(weights.T, weights) - num/np.matmul(weights.T, weights)
     
+    #print(np.matmul(weights.T, weights),num)
+    #print("Correction factor:", correction_factor)
+    
     # True covariance C_ij
-    covariance /= correction_factor
+    #covariance /= correction_factor
+    #print("true Covariance:", covariance)
+    # covariance of the mean 
+    #covariance = covariance*np.matmul(weights.T, weights)
+    #print("mean Covariance:", covariance)
 
     return covariance
 
