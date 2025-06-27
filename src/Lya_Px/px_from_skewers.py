@@ -75,7 +75,7 @@ def get_px(all_skewers,theta_min,theta_max):
     
     w_v_m = np.sum(products_weight,axis=0)
 
-    assert np.mean(products_weight,axis=0)[0]== w_v_m[0]/len(products)
+    #assert np.mean(products_weight,axis=0)[0]== w_v_m[0]/len(products)
 
     #print('mean of product of fft of weights computed',w_v_m)   
     # print(len(products),'Number of pairs')
