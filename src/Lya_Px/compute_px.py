@@ -31,6 +31,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     px_weights = {}
     p1d_dict = {}
     npairs = {}
+    weights_average = {}  # sum of product of weights for each (z, θmin, θmax) pair in a healpix pixel
 
     for z in range(len(z_alpha)):
         # wavelength range covered by this redshift bin
@@ -85,7 +86,8 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             px_weights[(z_bin, theta_bin)] = result[1]  # Px of weights for normalization
             p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
             npairs[(z_bin, theta_bin)] = no_of_pairs # number of pairs of sightlines in this theta bin
+            weights_average[(z_bin, theta_bin)] = result[4]
     
-    return k_arr, result_dict, p1d_dict ,px_weights, npairs
+    return k_arr, result_dict, p1d_dict ,px_weights, npairs, weights_average
 
 

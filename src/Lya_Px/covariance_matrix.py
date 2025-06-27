@@ -9,17 +9,17 @@ def compute_cov(px, weights):
         px: array of floats
             Px measurement in each healpix
         weights: array of floats
-            Weights on the Px measurement
+            Weights on the Px measurement in each healpix
 
     Returns:
         The covariance matrix
     """
-
+    
     mean_px = (px * weights).sum(axis=0)
     sum_weights = weights.sum(axis=0)
     w = sum_weights > 0.
     mean_px[w] /= sum_weights[w]
-
+    
     meanless_px_times_weight = weights * (px - mean_px)
 
     print("Computing cov...")
@@ -46,5 +46,5 @@ def compute_cov(px, weights):
     #covariance = covariance*np.matmul(weights.T, weights)
     #print("mean Covariance:", covariance)
 
-    return covariance
+    return mean_px, covariance
 
