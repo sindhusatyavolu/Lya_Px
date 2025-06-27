@@ -13,8 +13,8 @@ def calculate_estnorm(W, R, L):
     '''
     R2 = R.real**2 + R.imag**2
     denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))    
-    estnorm = np.absolute(L/denom)
-    return 1/estnorm            
+    estnorm = np.absolute(denom/L)
+    return estnorm            
 
 
 def avg_over_healpixels(results):
