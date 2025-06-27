@@ -12,7 +12,7 @@ def calculate_estnorm(W, R, L):
     estnorm (np.ndarray): vector length N, to be multiplied by every P1D mode of the measurement
     '''
     R2 = R.real**2 + R.imag**2
-    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))
+    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))    
     estnorm = np.absolute(L/denom)
     return 1/estnorm            
 
@@ -68,7 +68,10 @@ def avg_over_healpixels(results):
         L = N_fft * pw_A  # length of the spectra in Angstroms
         stacked_V_m = np.stack([calculate_estnorm(w,fft_avg_res , L) for w in stacked_weights])        
         print('shape of stacked_V_m:', np.shape(stacked_V_m))
-        stacked_px_hat = stacked_px/stacked_V_m
+        stacked_px_hat = np.zeros_like(stacked_px)
+        ind = stacked_V_m > 0.0
+        stacked_px_hat[ind] = stacked_px[ind] / stacked_V_m[ind]
+
 
         # average over healpixels
         #px_avg[key] = np.average(stacked_px, axis=0, weights=no_of_pairs[key]) # weighted average        
