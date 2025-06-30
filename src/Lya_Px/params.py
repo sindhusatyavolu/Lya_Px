@@ -51,6 +51,7 @@ DEG_TO_RAD = config.getfloat("constants", "DEG_TO_RAD")
 
 
 # Load postprocessing flags 
+return_cov = config.getboolean("postprocessing", "return_cov")
 P1D = config.getboolean("postprocessing", "P1D")
 plot_px = config.getboolean("postprocessing", "plot_px")
 plot_px_vel = config.getboolean("postprocessing", "plot_px_vel")

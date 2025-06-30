@@ -84,11 +84,11 @@ def avg_over_healpixels(results):
 
         #covariance[key] = np.cov(stacked, rowvar=False,aweights=no_of_pairs[key])  # covariance matrix of Px arrays
 
-
+        
         mean_px , covariance[key] = compute_cov(stacked_px_hat, stacked_V_m)  # covariance matrix of Px arrays
         px_avg[key] = mean_px
         
-        print('shape of covariance matrix:',np.shape(covariance[key]))
+        #print('shape of covariance matrix:',np.shape(covariance[key]))
         #print('mean_px',mean_px)
         #print(covariance[key])
 

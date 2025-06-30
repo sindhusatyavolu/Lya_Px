@@ -14,15 +14,16 @@ def compute_cov(px, weights):
     Returns:
         The covariance matrix
     """
-    
+    print("Computing mean Px...")
     mean_px = (px * weights).sum(axis=0)
     sum_weights = weights.sum(axis=0)
     w = sum_weights > 0.
     mean_px[w] /= sum_weights[w]
     
+    
     meanless_px_times_weight = weights * (px - mean_px)
 
-    print("Computing cov...")
+    print("Computing subsampling cov...")
 
     covariance = meanless_px_times_weight.T.dot(meanless_px_times_weight)
 

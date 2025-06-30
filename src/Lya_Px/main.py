@@ -1,7 +1,7 @@
 import numpy as np
 from Lya_Px.params import *
 from Lya_Px.avg_healpix import avg_over_healpixels
-from Lya_Px.auxiliary import save_results
+from Lya_Px.auxiliary import save_results,save_hp
 import cProfile
 import pstats
 from Lya_Px.compute_px import compute_px
@@ -29,12 +29,20 @@ def main():
     with Pool(ncpus) as pool:
         results = pool.starmap(compute_px, args)   
 
-    # average over healpixels and compute covariance
-    k_arr, px_avg, px_var, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  
-
-    # save results to hdf5 file
-    save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist,pw_A)
     
+    if return_cov== True:
+        print('Saving only averaged results...')
+        print('Computing average and covariance over healpixels...')
+
+        # average over healpixels and compute covariance
+        k_arr, px_avg, px_var, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  
+
+        # save results to hdf5 file
+        save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist,pw_A)
+    else:
+        print('Saving results for each healpix...')
+        save_hp(results, output_path, healpixlist, z_alpha, dz, pw_A)
+        
 
 if __name__=="__main__":
     with cProfile.Profile() as pr:

@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 from Lya_Px.params import *
+from collections import defaultdict
 
 # function to measure the angular separation between two points on the sky
 def angular_separation(ra1, dec1, ra2, dec2): 
@@ -88,6 +89,7 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha
         
         f.attrs['N_fft'] = len(k_arr)
         f.attrs['pixel_width_A'] = pw_A
+        
         #print(len(px_avg), 'z-theta bins found')
         #print(list(px_avg.keys()))
         # group for each z and theta bin
@@ -102,49 +104,53 @@ def save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha
             g.create_dataset('covariance', data=covariance[(z_bin, theta_bin)])
             g.attrs['theta_min'] = theta_min
             g.attrs['theta_max'] = theta_max
-    
-    """
-        # group for each theta bin
-        for i in range(len(px)):
-            g = f.create_group('theta_%d_%d'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
-            g.create_dataset('px', data=px[i])
-            g.create_dataset('px_var', data=px_var[i])
-            g.create_dataset('px_weights', data=px_weights[i])
-            g.create_dataset('covariance', data=px_cov[i])
-            g.attrs['theta_min'] = theta_min_array[i]
-            g.attrs['theta_max'] = theta_max_array[i]
 
-
-    for z_bin in range(len(z_alpha)):
-
-        # Pull out all keys that match this z_bin
-        matching_keys = [key for key in px_avg if np.isclose(key[0], float(z_alpha[z_bin]))]
-
-        theta_mins = [key[1][0] for key in matching_keys]
-        theta_maxs = [key[1][1] for key in matching_keys]
-        px_data    = [px_avg[key] for key in matching_keys]
-        px_vars    = [px_var[key] for key in matching_keys]
-        px_weights_data = [px_weights[key] for key in matching_keys]
-        px_cov    = [covariance[key] for key in matching_keys]
-        p1d = [p1d_avg[z_alpha[z_bin]]]
-
-        filename = output_path + f'px-nhp_{len(healpixlist)}_zbin_{z_alpha[z_bin]:.1f}.hdf5'
-
-        save_to_hdf5(
-            filename,
-            z_alpha[z_bin],
-            dz[z_bin],
-            px_data,
-            k_arr,
-            theta_mins,
-            theta_maxs,
-            px_vars,
-            px_cov,
-            px_weights_data,
-            p1d,
-            pw_A
-        )
-    """    
     print('Saved to', filename)
     return None
 
+def save_hp(results,output_path,healpixlist,z_alpha, dz, pw_A):
+
+    px_all = defaultdict(list)  # key = (z, theta_bin), value = list of Px arrays
+    px_weights_all = defaultdict(list)  
+    p1d_all = defaultdict(list)
+    no_of_pairs = defaultdict(list)  
+    weights_average = defaultdict(list)  
+
+    # accumulate results in only redshift and theta bins that exist for each healpixel
+    for k_arr, px_dict,p1d_dict, px_weights, npairs, w_avg in results:
+        for key in px_dict:
+            px_all[key].append(px_dict[key])  
+            px_weights_all[key].append(px_weights[key])
+            p1d_all[key[0]].append(p1d_dict[key[0]])
+            no_of_pairs[key].append(npairs[key])
+            weights_average[key].append(w_avg[key])
+
+    filename = output_path + f'px-nhp_{len(healpixlist)}-zbins_{len(z_alpha)}-thetabins_{len(theta_array)}.hdf5'
+
+    # save results to hdf5 file
+    with h5py.File(filename,'w') as f:
+        
+        f.create_dataset('k_arr', data=k_arr)
+        
+        f.attrs['N_fft'] = len(k_arr)
+        f.attrs['pixel_width_A'] = pw_A
+        f.attrs['z'] = z_alpha
+        f.attrs['dz'] = dz
+
+        # group for each z and theta bin, save all contributing healpix results
+        for key in px_all:
+            z_bin, theta_bin = key
+            theta_min, theta_max = theta_bin
+            g = f.create_group(f'z_{z_bin:.1f}_theta_{theta_min*RAD_TO_ARCMIN:.1f}_{theta_max*RAD_TO_ARCMIN:.1f}')
+            g.create_dataset('p1d', data=p1d_all[key[0]])
+            #print('px_all[key] shape:', np.shape(px_all[key]))
+            g.create_dataset('px', data=px_all[key])
+            g.create_dataset('px_weights', data=px_weights_all[key])
+            g.create_dataset('no_of_pairs', data=no_of_pairs[key])
+            g.create_dataset('avg_weights_per_healpix', data=weights_average[key])
+            g.attrs['theta_min'] = theta_min
+            g.attrs['theta_max'] = theta_max
+    
+    print('Saved to', filename)        
+
+    return None
