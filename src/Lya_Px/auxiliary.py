@@ -141,7 +141,7 @@ def save_hp(results,output_path,healpixlist,z_alpha, dz, pw_A):
         for key in px_all:
             z_bin, theta_bin = key
             theta_min, theta_max = theta_bin
-            g = f.create_group(f'z_{z_bin:.1f}_theta_{theta_min*RAD_TO_ARCMIN:.1f}_{theta_max*RAD_TO_ARCMIN:.1f}')
+            g = f.create_group(f'z_{z_bin:.2f}_theta_{theta_min*RAD_TO_ARCMIN:.2f}_{theta_max*RAD_TO_ARCMIN:.2f}')
             g.create_dataset('p1d', data=p1d_all[key[0]])
             #print('px_all[key] shape:', np.shape(px_all[key]))
             g.create_dataset('px', data=px_all[key])
