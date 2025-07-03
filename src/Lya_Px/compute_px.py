@@ -89,10 +89,10 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
             npairs[(z_bin, theta_bin)] = no_of_pairs # number of pairs of sightlines in this theta bin
             #weights_average[(z_bin, theta_bin)] = result[4]
-            if no_of_pairs==0:
-                print(result_dict[(z_bin, theta_bin)])
-                print(px_weights[(z_bin, theta_bin)])
-                print(p1d_dict[z_bin])
+            #if no_of_pairs==0:
+                #print(result_dict[(z_bin, theta_bin)])
+                #print(px_weights[(z_bin, theta_bin)])
+                #print(p1d_dict[z_bin])
     
     return k_arr, result_dict, p1d_dict ,px_weights, npairs #, weights_average
 
