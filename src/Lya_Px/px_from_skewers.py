@@ -72,8 +72,8 @@ def get_px(all_skewers,theta_min,theta_max):
     #px_var = np.var(products,axis=0)
     #px_ave = np.mean(products,axis=0)
     #print('variance and mean computed',px_var)
-    
-    w_v_m = np.sum(products_weight,axis=0)
+    if len(products)!=0:
+        w_v_m = np.sum(products_weight,axis=0)
 
     #assert np.mean(products_weight,axis=0)[0]== w_v_m[0]/len(products)
 
