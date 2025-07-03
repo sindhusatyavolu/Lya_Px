@@ -35,10 +35,10 @@ def main():
         print('Computing average and covariance over healpixels...')
 
         # average over healpixels and compute covariance
-        k_arr, px_avg, px_var, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  
+        k_arr, px_avg, px_weights, p1d_avg, covariance = avg_over_healpixels(results)  
 
         # save results to hdf5 file
-        save_results(px_avg, px_var, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist,pw_A)
+        save_results(px_avg, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist,pw_A)
     else:
         print('Saving results for each healpix...')
         save_hp(results, output_path, healpixlist, z_alpha, dz, pw_A)

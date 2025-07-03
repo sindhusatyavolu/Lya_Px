@@ -46,7 +46,7 @@ def avg_over_healpixels(results):
             weights_average[key].append(w_avg[key])
 
     px_avg = {}
-    px_var = {}
+    #px_var = {}
     p1d_avg = {}
     covariance = {}
     px_avg_weights = {}
@@ -75,7 +75,7 @@ def avg_over_healpixels(results):
 
         # average over healpixels
         #px_avg[key] = np.average(stacked_px, axis=0, weights=no_of_pairs[key]) # weighted average        
-        px_var[key] = np.var(stacked_px, axis=0) # not weighted
+        #px_var[key] = np.var(stacked_px, axis=0) # not weighted
         
         stacked_weights_avg  = np.stack(weights_average[key])
         px_avg_weights[key] =  np.average(stacked_weights_avg, axis=0,weights=no_of_pairs[key])  # weighted average
@@ -92,7 +92,7 @@ def avg_over_healpixels(results):
         #print('mean_px',mean_px)
         #print(covariance[key])
 
-    return k_arr, px_avg, px_var, px_avg_weights, p1d_avg, covariance
+    return k_arr, px_avg, px_avg_weights, p1d_avg, covariance
 
 
 
