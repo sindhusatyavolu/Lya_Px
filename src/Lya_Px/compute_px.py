@@ -56,11 +56,25 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         for skewer in skewers:
             skewer.mask_function(wave_fft_grid, lam_min, lam_max,N_fft)
 
-        # gather the sightlines that fall either partially or completely within the redshift bin wavelength range.
-        all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
         
+        all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
+
         if not all_skewers:
+            # fill all theta bins with NaNs
+            z_bin = z_alpha[z]
+            for t in range(len(theta_min_array)):
+                theta_bin = (theta_min_array[t], theta_max_array[t])
+                result_dict[(z_bin, theta_bin)] = np.full(N_fft, np.nan)
+                px_weights[(z_bin, theta_bin)] = np.full(N_fft, np.nan)
+                npairs[(z_bin, theta_bin)] = 0
+            p1d_dict[z_bin] = np.full(N_fft, np.nan)
             continue
+        
+        # gather the sightlines that fall either partially or completely within the redshift bin wavelength range.
+        #all_skewers = [s for s in skewers if z_alpha[z] in s.z_bins]
+        
+        #if not all_skewers:
+        #    continue
     
         for skewer in all_skewers:
             # map the sightline onto the FFT grid
@@ -70,29 +84,51 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         p1d,p1d_norm = get_p1d(all_skewers,N_fft)
 
         for theta in range(len(theta_min_array)):
-            # measure Px
-            result = get_px(all_skewers, theta_min_array[theta], theta_max_array[theta])
-            # check if there are any pairs of sightlines in this theta bin
-            no_of_pairs = result[2]
-            print(no_of_pairs)
-            
-            #if no_of_pairs == 0:
-            #    continue
-            
             # create keys for Px dict    
             z_bin = z_alpha[z]
             theta_bin = (theta_min_array[theta], theta_max_array[theta])
 
+            # measure Px
+            result = get_px(all_skewers, theta_min_array[theta], theta_max_array[theta])
+            # check if there are any pairs of sightlines in this theta bin
+            no_of_pairs = result[2]
+            #print(no_of_pairs)
+            
+            #if no_of_pairs == 0:
+            #    continue
+            if no_of_pairs == 0:
+                result_dict[(z_alpha[z], theta_bin)] = np.full(N_fft, np.nan)
+                px_weights[(z_alpha[z], theta_bin)] = np.full(N_fft, np.nan)
+                npairs[(z_alpha[z], theta_bin)] = 0
+                continue
+            
+   
             # store Px and weights in dicts for each z_bin and theta bin
             result_dict[(z_bin, theta_bin)] = result[0] # dimensionles Px; has to be normalized 
             px_weights[(z_bin, theta_bin)] = result[1]  # Px of weights for normalization
             p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
             npairs[(z_bin, theta_bin)] = no_of_pairs # number of pairs of sightlines in this theta bin
+            
             #weights_average[(z_bin, theta_bin)] = result[4]
             #if no_of_pairs==0:
                 #print(result_dict[(z_bin, theta_bin)])
                 #print(px_weights[(z_bin, theta_bin)])
                 #print(p1d_dict[z_bin])
+            # Fill in missing (z, theta) keys for consistency
+    
+    all_keys = [(z_alpha[z], (theta_min_array[t], theta_max_array[t])) for z in range(len(z_alpha)) for t in range(len(theta_min_array))]
+    
+    for key in all_keys:
+        if key not in result_dict:
+            result_dict[key] = np.full(N_fft, np.nan)
+            px_weights[key] = np.full(N_fft, np.nan)
+            npairs[key] = 0
+            #print(npairs[key],key)
+    for z in z_alpha:
+        if z not in p1d_dict:
+            p1d_dict[z] = np.full(N_fft, np.nan)
+        
+    
     
     return k_arr, result_dict, p1d_dict ,px_weights, npairs #, weights_average
 
