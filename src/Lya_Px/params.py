@@ -27,6 +27,7 @@ theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
 gauss_test = config.getboolean("parameters","gauss_test")
+ciii_forest = config.getboolean("parameters","ciii_forest")
 
 all_healpix = config.getboolean("parameters", "all_healpix")
 if not all_healpix:
@@ -42,6 +43,9 @@ c_SI = config.getfloat("constants", "c_SI")
 pw_A = config.getfloat("constants", "pw_A")
 N_fft = config.getint("constants", "N_fft")
 PI = config.getfloat("constants", "PI")
+
+if ciii_forest == True:
+    LAM_LYA = config.getfloat("constants", "LAM_CIII")
 
 # Load conversion factors
 RAD_TO_ARCMIN = config.getfloat("constants", "RAD_TO_ARCMIN")

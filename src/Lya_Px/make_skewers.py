@@ -97,7 +97,7 @@ def create_skewer_class():
             
             lam_bin = LAM_LYA*(1+redshifts)  
             lam_min = lam_bin - 0.5*redshift_bins*LAM_LYA  
-            lam_max = lam_bin + 0.5*redshift_bins*LAM_LYA 
+            lam_max = lam_bin + 0.5*redshift_bins*LAM_LYA
             
             self.z_bins = []
             self.z_bins_width = []
