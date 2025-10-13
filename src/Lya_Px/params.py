@@ -44,9 +44,6 @@ pw_A = config.getfloat("constants", "pw_A")
 N_fft = config.getint("constants", "N_fft")
 PI = config.getfloat("constants", "PI")
 
-if ciii_forest == True:
-    LAM_LYA = config.getfloat("constants", "LAM_CIII")
-
 # Load conversion factors
 RAD_TO_ARCMIN = config.getfloat("constants", "RAD_TO_ARCMIN")
 ARCMIN_TO_RAD = config.getfloat("constants", "ARCMIN_TO_RAD")

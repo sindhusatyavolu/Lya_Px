@@ -44,7 +44,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
         i_min = round((lam_min - wave_desi_min) / pw_A)
         i_max = round((lam_max - wave_desi_min) / pw_A)       
         #N_fft = 2*len(wave_desi[i_min:i_max])
-        if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > 5000:
+        if i_cen-N_fft//2 < 0 or i_cen+N_fft//2 > len(wave_desi):
             print('FFT grid is out of bounds, try different N_fft')
             exit(1) 
 
