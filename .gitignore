@@ -1,0 +1,18 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+# OS / IDE
+.DS_Store
+
+# Logs and scratch
+*.log
+
