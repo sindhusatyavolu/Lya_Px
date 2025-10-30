@@ -5,148 +5,143 @@ from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebi
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
-#root = './data/px_measurements/raw_mocks/'
-#root = '/Users/ssatyavolu/projects/DESI/Y3_Lya_Px/mocks/raw_mocks/'
-#datafile = 'px-nhp_41-zbins_4-thetabins_40.hdf5'
 
-# take path to config from command line argument with --config option
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", type=str, default="config.ini",help="Path to the configuration file")
-args = parser.parse_args()
+def main():
 
-# Load from config.ini
-config = configparser.ConfigParser()
-config.read(args.config)
+    # take path to config from command line argument with --config option
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.ini",help="Path to the configuration file")
+    args = parser.parse_args()
 
-root = config.get('paths', 'root')
-datafile = config.get('paths', 'datafile')
+    # Load from config.ini
+    config = configparser.ConfigParser()
+    config.read(args.config)
 
-k_bins_ratio = config.getfloat('parameters','k_bins_ratio') # number of k bins after rebinning will be Nk/k_bins_ratio
-k_max_ratio = config.getfloat('parameters','k_max_ratio') # maximum frequency will be max_k/k_max_ratio
-# define rebin parameters
-theta_bins_ratio = config.getfloat('parameters','theta_bins_ratio') # number of theta bins after rebinning will be Ntheta/theta_bins_ratio
-input_edges_A = config.get('parameters','input_edges_A') # boolean
-if input_edges_A == 'True':
-    user_theta_edges_A = config.get('parameters','user_theta_edges_A') # comma separated list of theta edges
+    root = config.get('paths', 'root')
+    datafile = config.get('paths', 'datafile')
 
-# Read data from HDF5 files and store px_data object
+    k_bins_ratio = config.getfloat('parameters','k_bins_ratio') # number of k bins after rebinning will be Nk/k_bins_ratio
+    k_max_ratio = config.getfloat('parameters','k_max_ratio') # maximum frequency will be max_k/k_max_ratio
+    
+    # define rebin parameters
+    theta_bins_ratio = config.getfloat('parameters','theta_bins_ratio') # number of theta bins after rebinning will be Ntheta/theta_bins_ratio
+    input_edges_A = config.get('parameters','input_edges_A') # boolean
+    if input_edges_A == 'True':
+        user_theta_edges_A = config.get('parameters','user_theta_edges_A') # comma separated list of theta edges
 
-px_data = Px_meas(root+datafile)
-F_zh_am, W_zh_am, k_m = px_data.unpack_healpix(positive_frequencies=True)
-print(k_m)
-print('Shape of F is',np.shape(F_zh_am)) # (N_z, N_theta, N_hp, N_k)
-assert ~np.isnan(F_zh_am).any()
-assert ~np.isnan(W_zh_am).any()
+    # Read data from HDF5 files and store px_data object
+    px_data = Px_meas(root+datafile)
+    F_zh_am, W_zh_am, k_m = px_data.unpack_healpix(positive_frequencies=True)
+    print(k_m)
+    print('Shape of F is',np.shape(F_zh_am)) # (N_z, N_theta, N_hp, N_k)
+    assert ~np.isnan(F_zh_am).any()
+    assert ~np.isnan(W_zh_am).any()
+    
+    input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
+    # set average resolution
+    if input_avg_res == True:
+        resolution_correction = config.get('paths','resolution_correction') # path to pickle file
+        with open(resolution_correction, "rb") as f:
+            sigma_l = pickle.load(f) # shape (N_z)
+        k_full = px_data.k_arr    
+        R_m = model_resolution(k_full,np.mean(sigma_l))
+        R2_m = R_m**2
+    else:
+        R2_m = np.ones(px_data.N_fft)
 
-input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
-# set average resolution
-if input_avg_res == True:
-    resolution_correction = config.get('paths','resolution_correction') # path to pickle file
-    with open(resolution_correction, "rb") as f:
-        sigma_l = pickle.load(f) # shape (N_z)
-    k_full = px_data.k_arr    
-    R_m = model_resolution(k_full,np.mean(sigma_l))
-    R2_m = R_m**2
-else:
-    R2_m = np.ones(px_data.N_fft)
+    # compute the normalisation
+    V_zh_am = calculate_V_zh_AM(W_zh_am,R2_m,px_data.L_fft)
+    # keep only positive 
+    V_zh_am = V_zh_am[...,:px_data.N_fft//2]
+
+    print('Shape of V is',np.shape(V_zh_am))
+
+    # define rebin parameters 
+    bin_info = {} 
+
+    # we will rebin the wavenumbers to make them more independent, and better measured
+    max_k = px_data.k_Nyq # maximum frequency to consider, in 1/A
+    B_M_m, k_M_edges = bin_func_k(k_m,px_data.k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type='top_hat') # B_M_m has shape (NK, Nk) and B_A_a has shape (Ntheta_rebin, Ntheta_bin)
+
+    # Rebin in k per healpix
+    F_zh_aM =  rebin_k(F_zh_am,B_M_m,healpix=True)
+    V_zh_aM = rebin_k(V_zh_am,B_M_m,healpix=True)
+
+    # Test everything is in order
+    #for nhp in range(3):
+        #plt.plot(k_m,F_zh_am[1,10,nhp,:])
+        #plt.plot(k_M,F_zh_aM[1,10,nhp,:],color='black')
+        #z = px_data.z_bin_centers[1]
+        #theta_min = px_data.theta_bin_min[10]
+        #theta_max = px_data.theta_bin_max[10]
+        #key = (z,theta_min,theta_max)
+        #plt.plot(px_data.k_arr[:px_data.N_fft//2],px_data.px[key][nhp,:px_data.N_fft//2],linestyle='--')
+        #assert np.isclose(px_data.px[key][nhp,:px_data.N_fft//2],F_zh_am[1,10,nhp,:]).any() # works only if max_k is k_Nyq
+        #plt.show()
 
 
-#sigma = 0.1
-#R2_m = np.exp(-(k_m*sigma)**2)
+    # we need an average over all theta_bins belonging to the new theta_rebins, which will give the array (z,nhp,Nk) for each theta_rebins
+    if input_edges_A == 'True':
+        theta_edges_A = [float(x) for x in user_theta_edges_A.strip('[]').split(',')]
+        B_A_a, theta_min_A, theta_max_A = bin_func_theta(px_data.theta_bin_min,px_data.theta_bin_max,theta_bins_ratio,bin_func_type='top_hat',input_edges_A=True,user_theta_edges_A=theta_edges_A)
+    else:
+        B_A_a, theta_min_A, theta_max_A = bin_func_theta(px_data.theta_bin_min,px_data.theta_bin_max,theta_bins_ratio,bin_func_type='top_hat')
 
-# compute the normalisation
-V_zh_am = calculate_V_zh_AM(W_zh_am,R2_m,px_data.L_fft)
-# keep only positive 
-V_zh_am = V_zh_am[...,:px_data.N_fft//2]
-
-print('Shape of V is',np.shape(V_zh_am))
-
-# define rebin parameters 
-bin_info = {} 
-
-# we will rebin the wavenumbers to make them more independent, and better measured
-max_k = px_data.k_Nyq # maximum frequency to consider, in 1/A
-B_M_m, k_M_edges = bin_func_k(k_m,px_data.k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type='top_hat') # B_M_m has shape (NK, Nk) and B_A_a has shape (Ntheta_rebin, Ntheta_bin)
-
-# Rebin in k per healpix
-F_zh_aM =  rebin_k(F_zh_am,B_M_m,healpix=True)
-V_zh_aM = rebin_k(V_zh_am,B_M_m,healpix=True)
-
-# Test everything is in order
-#for nhp in range(3):
-    #plt.plot(k_m,F_zh_am[1,10,nhp,:])
-    #plt.plot(k_M,F_zh_aM[1,10,nhp,:],color='black')
-    #z = px_data.z_bin_centers[1]
-    #theta_min = px_data.theta_bin_min[10]
-    #theta_max = px_data.theta_bin_max[10]
-    #key = (z,theta_min,theta_max)
-    #plt.plot(px_data.k_arr[:px_data.N_fft//2],px_data.px[key][nhp,:px_data.N_fft//2],linestyle='--')
-    #assert np.isclose(px_data.px[key][nhp,:px_data.N_fft//2],F_zh_am[1,10,nhp,:]).any() # works only if max_k is k_Nyq
+    #plt.plot(px_data.theta_bin_min,B_A_a[8,:])
+    #plt.xscale('log')
     #plt.show()
 
+    # Rebin in theta per healpix
+    F_zh_AM = rebin_theta(F_zh_aM,B_A_a,healpix=True)
+    V_zh_AM = rebin_theta(V_zh_aM,B_A_a,healpix=True)
 
-# we need an average over all theta_bins belonging to the new theta_rebins, which will give the array (z,nhp,Nk) for each theta_rebins
-if input_edges_A == 'True':
-    theta_edges_A = [float(x) for x in user_theta_edges_A.strip('[]').split(',')]
-    B_A_a, theta_min_A, theta_max_A = bin_func_theta(px_data.theta_bin_min,px_data.theta_bin_max,theta_bins_ratio,bin_func_type='top_hat',input_edges_A=True,user_theta_edges_A=theta_edges_A)
-else:
-    B_A_a, theta_min_A, theta_max_A = bin_func_theta(px_data.theta_bin_min,px_data.theta_bin_max,theta_bins_ratio,bin_func_type='top_hat')
-
-#plt.plot(px_data.theta_bin_min,B_A_a[8,:])
-#plt.xscale('log')
-#plt.show()
-
-# Rebin in theta per healpix
-F_zh_AM = rebin_theta(F_zh_aM,B_A_a,healpix=True)
-V_zh_AM = rebin_theta(V_zh_aM,B_A_a,healpix=True)
-
-# Test everything is in order
-#for nhp in range(1):
-#    plt.plot(k_m,F_zh_am[1,10,nhp,:])
-#    print(px_data.theta_bin_min[10],px_data.theta_bin_max[10])
-#    print(theta_min_A[1],theta_max_A[1])
-#    plt.plot(k_M,F_zh_AM[1,1,nhp,:],color='black')
-#    plt.show()
+    # Test everything is in order
+    #for nhp in range(1):
+    #    plt.plot(k_m,F_zh_am[1,10,nhp,:])
+    #    print(px_data.theta_bin_min[10],px_data.theta_bin_max[10])
+    #    print(theta_min_A[1],theta_max_A[1])
+    #    plt.plot(k_M,F_zh_AM[1,1,nhp,:],color='black')
+    #    plt.show()
 
 
-# Measure average 
+    # Measure average 
 
-#R_zh_AM = np.ones_like(W_zh_AM, dtype=float)
-P_z_AM, V_z_AM = average_px(F_zh_AM,W_zh_am,R2_m,px_data.L_fft,B_A_a,B_M_m)
+    #R_zh_AM = np.ones_like(W_zh_AM, dtype=float)
+    P_z_AM, V_z_AM = average_px(F_zh_AM,W_zh_am,R2_m,px_data.L_fft,B_A_a,B_M_m)
 
-#for i in range(len(theta_min_A)):
-#    plt.plot(k_M,P_z_AM[0,i,:],label=theta_min_A[i])
-#plt.legend()
-#plt.show()
+    #for i in range(len(theta_min_A)):
+    #    plt.plot(k_M,P_z_AM[0,i,:],label=theta_min_A[i])
+    #plt.legend()
+    #plt.show()
 
-# Measure covariance
-C_z_AMN, Php_z_AM = compute_covariance(F_zh_AM,V_zh_AM)
+    # Measure covariance
+    C_z_AMN, Php_z_AM = compute_covariance(F_zh_AM,V_zh_AM)
 
-# Plot covariance
-#print(C_z_AMN)
-#plt.imshow(C_z_AMN[2,8,:,:])
-#plt.show()
+    # Plot covariance
+    #print(C_z_AMN)
+    #plt.imshow(C_z_AMN[2,8,:,:])
+    #plt.show()
 
-# Compare averages
-#for i in range(len(theta_min_A)):
-#    plt.plot(k_M,P_z_AM[0,i,:],label=theta_min_A[i])
-#    plt.plot(k_M,Php_z_AM[0,i,:],linestyle='--')
-#plt.legend()
-#plt.show()
+    # Compare averages
+    #for i in range(len(theta_min_A)):
+    #    plt.plot(k_M,P_z_AM[0,i,:],label=theta_min_A[i])
+    #    plt.plot(k_M,Php_z_AM[0,i,:],linestyle='--')
+    #plt.legend()
+    #plt.show()
 
-# Window matrix 
+    # Window matrix 
 
-W_z_am  = get_sum_over_healpix(W_zh_am)
-#print(np.shape(W_zh_am),np.shape(R_zh_am),'passed')
-U_z_amn  = calculate_window_matrix(W_z_am,R2_m)
-
-
-# bin window matrix
-U_z_aMn, V_z_aM, V_z_am = bin_window(U_z_amn,B_M_m,W_z_am,R2_m,px_data.L_fft)
+    W_z_am  = get_sum_over_healpix(W_zh_am)
+    #print(np.shape(W_zh_am),np.shape(R_zh_am),'passed')
+    U_z_amn  = calculate_window_matrix(W_z_am,R2_m)
 
 
-# Save to new hdf5 file with metadata and binning information for theory
-outfile= root+ config.get('paths','outfile')
-save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers)
+    # bin window matrix
+    U_z_aMn, V_z_aM, V_z_am = bin_window(U_z_amn,B_M_m,W_z_am,R2_m,px_data.L_fft)
+
+
+    # Save to new hdf5 file with metadata and binning information for theory
+    outfile= root+ config.get('paths','outfile')
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers)
 
 
