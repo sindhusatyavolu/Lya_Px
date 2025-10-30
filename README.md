@@ -33,9 +33,9 @@ Outputs are stored in HDF5 format. Use h5ls or h5dump to check the file. Alterna
 
 Primarily includes binning and plotting. Usage:
 
-```lyapx-post <output_path> <plot_directory>```
+```lyapx-rebin --config path_to_config_file```
 
-Takes as input the path to the Px file and the directory where you want to save any outputs.
+Takes as input the path to the Px file, parameters for rebinning/computing covariance and the directory where you want to save any outputs.
 
 
 

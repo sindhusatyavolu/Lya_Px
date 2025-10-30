@@ -22,5 +22,5 @@ dependencies = [
 
 [project.scripts]
 lyapx-main = "Lya_Px.main:main"
-lyapx-post = "Lya_Px.post_processing:main"
+lyapx-rebin = "Lya_Px.rebin_cov.main:main"
 
