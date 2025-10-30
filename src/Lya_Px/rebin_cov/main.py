@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
-from cupix.rebin_cov.healpix_px import Px_meas
-from cupix.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution
+from Lya_Px.rebin_cov.healpix_px import Px_meas
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
