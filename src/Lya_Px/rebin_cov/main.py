@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
 from Lya_Px.rebin_cov.healpix_px import Px_meas
-from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
@@ -38,14 +38,22 @@ def main():
     assert ~np.isnan(W_zh_am).any()
     
     input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
+    res_path = config.getboolean('parameters','res_path') # boolean
     # set average resolution
     if input_avg_res == True:
-        resolution_correction = config.get('paths','resolution_correction') # path to pickle file
-        with open(resolution_correction, "rb") as f:
-            sigma_l = pickle.load(f) # shape (N_z)
-        k_full = px_data.k_arr    
-        R_m = model_resolution(k_full,np.mean(sigma_l))
+        if res_path == True:
+            resolution_correction = config.get('paths','resolution_correction') # path to pickle file
+            with open(resolution_correction, "rb") as f:
+                sigma_l = pickle.load(f) # shape (N_z)\
+                z_p1d = [2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0,4.2]
+                z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
+                sigma_l_avg = sigma_l[z_ind]
+        else:
+            sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
+            k_full = px_data.k_arr    
+        R_m = model_resolution(k_full,sigma_l_avg)
         R2_m = R_m**2
+        
     else:
         R2_m = np.ones(px_data.N_fft)
 

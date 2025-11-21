@@ -3,6 +3,22 @@
 import numpy as np
 import h5py
 
+def nearest_indx(array, value):
+    '''
+    Finds the index of the nearest value in an array
+
+    Inputs:
+    array (np.ndarray): input array
+    value (float): value to find
+
+    Returns:
+    index (int): index of the nearest value in the array
+
+    '''
+    array = np.asarray(array)
+    index = (np.abs(array - value)).argmin()
+    return index
+
 def model_resolution(k,sigma_l):
     resolution = np.exp(-0.5 * (k * sigma_l) ** 2) * (np.sin(k * 0.4) / (k * 0.4))
     return resolution
