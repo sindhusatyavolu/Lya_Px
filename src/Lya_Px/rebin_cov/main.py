@@ -41,17 +41,19 @@ def main():
     res_path = config.getboolean('parameters','res_path') # boolean
     # set average resolution
     if input_avg_res == True:
+        k_full = px_data.k_arr
         if res_path == True:
             resolution_correction = config.get('paths','resolution_correction') # path to pickle file
             with open(resolution_correction, "rb") as f:
                 sigma_l = pickle.load(f) # shape (N_z)\
                 z_p1d = [2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0,4.2]
                 z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
-                sigma_l_avg = sigma_l[z_ind]
+                sigma_l_avg = sigma_l[z_ind]                  
+                R_m = model_resolution(k_full,sigma_l_avg)
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
-            k_full = px_data.k_arr    
-        R_m = model_resolution(k_full,sigma_l_avg)
+            R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)
+       
         R2_m = R_m**2
         
     else:
