@@ -47,15 +47,17 @@ def main():
             with open(resolution_correction, "rb") as f:
                 sigma_l = pickle.load(f) # shape (N_z)\
                 z_p1d = [2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0,4.2]
-                z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
-                sigma_l_avg = sigma_l[z_ind]                  
-                R_m = model_resolution(k_full,sigma_l_avg)
+                # one nearest index in z_p1d per Px z-bin center
+                z_inds = [nearest_indx(z_p1d, zc) for zc in px_data.z_bin_centers]
+                # pick the corresponding sigmas and average them
+                sigma_l_avg = np.mean(sigma_l[z_inds])
+                R_m = model_resolution(k_full, sigma_l_avg)
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
             R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)
        
         R2_m = R_m**2
-        
+   
     else:
         R2_m = np.ones(px_data.N_fft)
 
