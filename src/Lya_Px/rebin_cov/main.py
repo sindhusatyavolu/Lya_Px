@@ -46,6 +46,7 @@ def main():
             resolution_correction = config.get('paths','resolution_correction') # path to pickle file
             with open(resolution_correction, "rb") as f:
                 sigma_l = pickle.load(f) # shape (N_z)\
+                sigma_l = np.array(sigma_l)
                 z_p1d = [2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0,4.2]
                 # one nearest index in z_p1d per Px z-bin center
                 z_inds = [nearest_indx(z_p1d, zc) for zc in px_data.z_bin_centers]
