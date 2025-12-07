@@ -51,7 +51,9 @@ def main():
                 # one nearest index in z_p1d per Px z-bin center
                 z_inds = [nearest_indx(z_p1d, zc) for zc in px_data.z_bin_centers]
                 # pick the corresponding sigmas and average them
+                print('z indices for sigma_l:',z_inds)
                 sigma_l_avg = np.mean(sigma_l[z_inds])
+                print(sigma_l_avg)
                 R_m = model_resolution(k_full, sigma_l_avg)
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
