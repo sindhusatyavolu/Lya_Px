@@ -20,7 +20,8 @@ def nearest_indx(array, value):
     return index
 
 def model_resolution(k,sigma_l):
-    resolution = np.exp(-0.5 * (k * sigma_l) ** 2) * (np.sin(k * 0.4) / (k * 0.4))
+    #resolution = np.exp(-0.5 * (k * sigma_l) ** 2) * (np.sin(k * 0.4) / (k * 0.4))
+    resolution = np.exp(-0.5 * (k * sigma_l) ** 2)* (np.sinc(k * 0.4 / np.pi))
     return resolution
 
 def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type):
