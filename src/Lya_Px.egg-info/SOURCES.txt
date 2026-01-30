@@ -6,6 +6,7 @@ src/Lya_Px/auxiliary.py
 src/Lya_Px/avg_healpix.py
 src/Lya_Px/compute_p1d.py
 src/Lya_Px/compute_px.py
+src/Lya_Px/covariance_matrix.py
 src/Lya_Px/gaussian_skewer_maker.py
 src/Lya_Px/gaussian_skewers.py
 src/Lya_Px/input_power.py
@@ -21,3 +22,7 @@ src/Lya_Px.egg-info/dependency_links.txt
 src/Lya_Px.egg-info/entry_points.txt
 src/Lya_Px.egg-info/requires.txt
 src/Lya_Px.egg-info/top_level.txt
+src/Lya_Px/rebin_cov/__init__.py
+src/Lya_Px/rebin_cov/healpix_px.py
+src/Lya_Px/rebin_cov/lib_funcs.py
+src/Lya_Px/rebin_cov/main.py
