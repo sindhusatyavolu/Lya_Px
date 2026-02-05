@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
 from Lya_Px.rebin_cov.healpix_px import Px_meas
-from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
@@ -128,6 +128,12 @@ def main():
     # Measure covariance
     C_z_AMN, Php_z_AM = compute_covariance(F_zh_AM,V_zh_AM)
 
+    # Measure covariance across different theta bins 
+    C_z_ABM, _ = covariance_across_theta(F_zh_AM,V_zh_AM)
+
+    C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM)
+
+
     # Plot covariance
     #print(C_z_AMN)
     #plt.imshow(C_z_AMN[2,8,:,:])
@@ -153,6 +159,6 @@ def main():
 
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
-    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers)
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=True,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN)
 
 
