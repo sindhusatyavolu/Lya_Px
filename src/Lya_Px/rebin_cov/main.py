@@ -40,6 +40,7 @@ def main():
     
     input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
     res_path = config.getboolean('parameters','res_path') # boolean
+
     # set average resolution
     if input_avg_res == True:
         k_full = px_data.k_arr
