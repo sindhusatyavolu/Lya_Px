@@ -3,6 +3,12 @@
 import numpy as np
 import h5py
 
+def nearest_indx_many(grid, values):
+    grid = np.asarray(grid)
+    values = np.asarray(values)
+    # returns an index for each entry in values
+    return np.abs(grid[None, :] - values[:, None]).argmin(axis=1)
+
 def nearest_indx(array, value):
     '''
     Finds the index of the nearest value in an array
@@ -281,6 +287,58 @@ def compute_covariance(F_zh_AM,V_zh_AM):
     print('Shape of covariance matrix is',np.shape(C_z_AMN))
     return C_z_AMN, P_z_AM
 
+
+def covariance_across_theta(F_zh_AM,V_zh_AM):
+    '''
+    Covariance of Px across different theta bins, returns covariance matrix
+    '''
+    V_z_AM = np.einsum('zAhM->zAM',V_zh_AM)
+    
+    P_zh_AM = np.divide(F_zh_AM,V_zh_AM,out=np.zeros_like(F_zh_AM),where=V_zh_AM>0)#F_zh_AM/V_zh_AM
+    #print('per healpix Px shape is', np.shape(P_zh_AM))
+
+    P_z_AM = np.divide(np.einsum('zAhM,zAhM->zAM',V_zh_AM,P_zh_AM),V_z_AM,out=np.zeros_like(V_z_AM),where=V_z_AM>0)
+
+    #P_avg = np.divide(avg_num,avg_denom,out=np.zeros_like(cov_num),where=denom>0)
+
+    P_diff = P_zh_AM - P_z_AM[:,:,None,:]
+
+    cov_num = np.einsum('zAhM,zBhM,zAhM,zBhM->zABM',V_zh_AM,V_zh_AM,P_diff,P_diff) 
+    denom =  V_z_AM[:, :,None,:] * V_z_AM[:, None, :, :]
+
+    #print(np.shape(cov_num))
+    #print(np.shape(denom))
+
+    C_z_ABM = np.divide(cov_num,denom,out=np.zeros_like(cov_num),where=denom>0)
+    #print(np.shape(C_z_AMN))
+    print('Shape of covariance matrix across theta bins is',np.shape(C_z_ABM))
+    return C_z_ABM, P_z_AM
+
+def cov_theta_k_bins(F_zh_AM,V_zh_AM):
+
+    '''
+    Covariance of Px across different theta bins and k bins, returns off diagonal covariance matrix
+    '''
+    V_z_AM = np.einsum('zAhM->zAM',V_zh_AM)
+    
+    P_zh_AM = np.divide(F_zh_AM,V_zh_AM,out=np.zeros_like(F_zh_AM),where=V_zh_AM>0)#F_zh_AM/V_zh_AM
+    #print('per healpix Px shape is', np.shape(P_zh_AM))
+
+    P_z_AM = np.divide(np.einsum('zAhM,zAhM->zAM',V_zh_AM,P_zh_AM),V_z_AM,out=np.zeros_like(V_z_AM),where=V_z_AM>0)
+
+    #P_avg = np.divide(avg_num,avg_denom,out=np.zeros_like(cov_num),where=denom>0)
+
+    P_diff = P_zh_AM - P_z_AM[:,:,None,:]
+    cov_num = np.einsum('zAhM,zBhN,zAhM,zBhN->zABMN',V_zh_AM,V_zh_AM,P_diff,P_diff) 
+    denom =  V_z_AM[:, :,None,:, None] * V_z_AM[:, None, :, None, :]
+    C_z_ABMN = np.divide(cov_num,denom,out=np.zeros_like(cov_num),where=denom>0)
+    print('Shape of covariance matrix across theta and k bins is',np.shape(C_z_ABMN))
+    return C_z_ABMN, P_z_AM
+
+
+
+
+
 def calculate_window_matrix(W_z_AM, R2_m):
     '''
     W (np.ndarray): average of (w1) conj(w2) where w1 and w2 are FFT of original weights per skewer
@@ -334,7 +392,7 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
 def get_sum_over_healpix(W_zh_am):
     return np.einsum('zahm->zam',W_zh_am)
 
-def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers):
+def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None):
 
     with h5py.File(filename, 'w') as f:  
         # Save metadata as attributes
@@ -348,7 +406,9 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
         g.attrs['theta_max_a'] = theta_bin_max
         g.attrs['theta_min_A'] = theta_min_A
         g.attrs['theta_max_A'] = theta_max_A
+        g.attrs['cov_theta_bool'] = cov_theta
         g.create_dataset('B_A_a',data=B_A_a)
+
 
         
         
@@ -357,6 +417,8 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
         gC = f.create_group('C_Z_AMN')
         gU = f.create_group('U_Z_aMn')
         gV = f.create_group('V_Z_aM')
+        gc = f.create_group('C_Z_AB')
+        gck = f.create_group('C_Z_ABMN')
 
         Nz, N_A, NK = P_Z_AM.shape
         for i in range(Nz):
@@ -366,6 +428,33 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
                 ds_name = f'{z_str}/{theta_str}'
                 gP.create_dataset(ds_name, data=P_Z_AM[i,j,:], compression="gzip", compression_opts=4)
                 gC.create_dataset(ds_name, data=C_Z_AMN[i,j,:,:], compression="gzip", compression_opts=4)
+        
+        if cov_theta:
+            for i in range(Nz):
+                z_str = f'z_{i}'
+                for k in range(NK):
+                    k_str = f'k_{k}'
+                    ds_name = f'{z_str}/{k_str}'
+                    gc.create_dataset(ds_name, data=C_Z_AB[i,:,:,k], compression="gzip", compression_opts=4)
+            for i in range(Nz):
+                z_str = f"z_{i}"
+
+                # take covariance at this z
+                C_theta_theta_kk = C_z_ABMN[i]  
+                # shape: (Nθ, Nθ, Nk, Nk)
+
+                # reorder axes to (θ, k, θ', k')
+                C_reordered = C_theta_theta_kk.transpose(0, 2, 1, 3)
+
+                # reshape to (Nθ*Nk, Nθ*Nk)
+                C_full = C_reordered.reshape(N_A*NK, N_A*NK)
+
+                gck.create_dataset(
+                    z_str,
+                    data=C_full,
+                    compression="gzip",
+                    compression_opts=4
+                )
 
         Nz, N_a, NK, Nk = U_Z_aMn.shape 
         for i in range(Nz):
