@@ -21,8 +21,9 @@ def main():
     datafile = config.get('paths', 'datafile')
 
     k_bins_ratio = config.getfloat('parameters','k_bins_ratio') # number of k bins after rebinning will be Nk/k_bins_ratio
-    k_max_ratio = config.getfloat('parameters','k_max_ratio') # maximum frequency will be max_k/k_max_ratio
-   
+    k_max = config.getfloat('parameters','k_max') # maximum frequency will be k_max
+    k_min_factor = config.getfloat('parameters','k_min_factor') # edge of first k bin will be k > k_fund*k_min_factor 
+ 
     cov_theta_bool = config.getboolean('parameters','cov_theta_bool') 
   
     # define rebin parameters
@@ -79,7 +80,7 @@ def main():
 
     # we will rebin the wavenumbers to make them more independent, and better measured
     max_k = px_data.k_Nyq # maximum frequency to consider, in 1/A
-    B_M_m, k_M_edges = bin_func_k(k_m,px_data.k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type='top_hat') # B_M_m has shape (NK, Nk) and B_A_a has shape (Ntheta_rebin, Ntheta_bin)
+    B_M_m, k_M_edges = bin_func_k(k_m,px_data.k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type='top_hat') # B_M_m has shape (NK, Nk) and B_A_a has shape (Ntheta_rebin, Ntheta_bin)
 
     # Rebin in k per healpix
     F_zh_aM =  rebin_k(F_zh_am,B_M_m,healpix=True)

@@ -29,14 +29,15 @@ def model_resolution(k,sigma_l):
     resolution = np.exp(-0.5 * (k * sigma_l) ** 2) * (np.sin(k * 0.4) / (k * 0.4))
     return resolution
 
-def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type):
+def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type):
     '''
     Generates the binning function 
 
     Inputs:
     k_arr (np.1darray) : array of k values (1D) from FFT
     k_fund (float): fundamental frequency of the FFT 
-    k_bins_ratio (int): ratio of original k-bin width to desired k-bin width 
+    k_bins_ratio (int): ratio of original k-bin width to desired k-bin width
+    k_min_factor (float): sets the lower edge of the first k-bin to k_fund*k_min_factor
     k_max_ratio (int): ratio of maximum k to k_max of data to stop rebinning 
     bin_func_type (str): type of binning function ('top_hat' supported for now) 
     
@@ -44,22 +45,27 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max_ratio,bin_func_type):
     B_M_m (np.ndarray): binning function matrix (N_k_rebin, N_k)
 
     '''
-    dk_bin=k_fund*k_bins_ratio
+
+    dk_bin=k_fund*k_bins_ratio  # k_fund is k_1, so dk_bin = k_1*bf
     print('Computing B^M_m...')
     print('dk =',dk_bin)
 
-    # stop roughly at 1/4 of the Nyquist frequency for now (equivalent to rebinning 4 pixels)
-    k_max= max_k/k_max_ratio
+    k_min = k_fund*k_min_factor # exclude modes with k<k_min
 
+    # stop roughly at 1/4 of the Nyquist frequency for now (equivalent to rebinning 4 pixels)
+    #k_max= max_k/k_max_ratio
+   
     print('k < ',k_max)
 
-    k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
+    #k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
+    k_edges = np.arange(k_min,k_max+dk_bin,dk_bin)
 
     Nk=k_edges.size-1
     N_fft = len(k_arr)
-    if int(k_bins_ratio) == 1 and int(k_max_ratio) == 1 and np.isclose(k_arr[0], 0.0):
-        B_M_m = np.eye(len(k_arr), dtype=float)
-        k_edges = k_arr 
+    if int(k_bins_ratio) == 1 and np.isclose(k_arr[0], 0.0):
+        mask = (k_arr <= k_max) & (k_arr>0.0)
+        B_M_m = np.eye(len(k_arr), dtype=float)[mask]
+        k_edges = k_arr[mask] 
     else:
         #define bin function
         B_M_m=np.zeros([Nk,N_fft]) # includes negative k values
