@@ -3,6 +3,12 @@
 import numpy as np
 import h5py
 
+def nearest_indx_many(grid, values):
+    grid = np.asarray(grid)
+    values = np.asarray(values)
+    # returns an index for each entry in values
+    return np.abs(grid[None, :] - values[:, None]).argmin(axis=1)
+
 def nearest_indx(array, value):
     '''
     Finds the index of the nearest value in an array

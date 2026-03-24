@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
 from Lya_Px.rebin_cov.healpix_px import Px_meas
-from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins, nearest_indx_many
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
@@ -22,7 +22,9 @@ def main():
 
     k_bins_ratio = config.getfloat('parameters','k_bins_ratio') # number of k bins after rebinning will be Nk/k_bins_ratio
     k_max_ratio = config.getfloat('parameters','k_max_ratio') # maximum frequency will be max_k/k_max_ratio
-    
+   
+    cov_theta_bool = config.getboolean('parameters','cov_theta_bool') 
+  
     # define rebin parameters
     theta_bins_ratio = config.getfloat('parameters','theta_bins_ratio') # number of theta bins after rebinning will be Ntheta/theta_bins_ratio
     input_edges_A = config.get('parameters','input_edges_A') # boolean
@@ -49,14 +51,18 @@ def main():
             with open(resolution_correction, "rb") as f:
                 sigma_l = pickle.load(f) # shape (N_z)\
                 z_p1d = [2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0,4.2]
-                z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
-                sigma_l_avg = sigma_l[z_ind]                  
-                R_m = model_resolution(k_full,sigma_l_avg)
+                #z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
+                z_ind = nearest_indx_many(z_p1d,px_data.z_bin_centers)
+                sigma_l = np.asarray(sigma_l)
+                sigma_l_z = sigma_l[z_ind]                 
+                ksig = k_full*np.mean(sigma_l_z) #np.outer(sigma_l_z, k_full)
+                R_zm = np.exp(-0.5 * (ksig) ** 2)*np.sinc(k_full*0.4/np.pi) #* (np.sin(k_full * 0.4) / (k_full * 0.4)) 
+                R2_zm = R_zm**2
+                R2_m = R2_zm
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
             R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)
-       
-        R2_m = R_m**2
+            R2_m = R_m**2
         
     else:
         R2_m = np.ones(px_data.N_fft)
@@ -130,9 +136,14 @@ def main():
     C_z_AMN, Php_z_AM = compute_covariance(F_zh_AM,V_zh_AM)
 
     # Measure covariance across different theta bins 
-    C_z_ABM, _ = covariance_across_theta(F_zh_AM,V_zh_AM)
+    if cov_theta_bool:
 
-    C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM)
+        C_z_ABM, _ = covariance_across_theta(F_zh_AM,V_zh_AM)
+
+        C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM)
+    else:
+        C_z_ABM = None
+        C_z_ABMN =  None
 
 
     # Plot covariance
@@ -160,6 +171,6 @@ def main():
 
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
-    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=True,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN)
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN)
 
 
