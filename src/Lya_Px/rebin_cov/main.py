@@ -34,7 +34,10 @@ def main():
 
     # Read data from HDF5 files and store px_data object
     px_data = Px_meas(root+datafile)
-    print(px_data.num_pairs)
+    #print(px_data.num_pairs)
+    num_pairs_per_key = {k: v.sum() for k, v in px_data.num_pairs.items()}
+    print(num_pairs_per_key)
+
     F_zh_am, W_zh_am, k_m = px_data.unpack_healpix(positive_frequencies=True)
     print(k_m)
     print('Shape of F is',np.shape(F_zh_am)) # (N_z, N_theta, N_hp, N_k)
