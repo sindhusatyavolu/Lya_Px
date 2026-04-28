@@ -15,30 +15,58 @@ def get_skewers(healpix,deltas_path):
 
     # read skewers from the healpix pixel
     delta_file=deltas_path+'delta-%d.fits.gz'%(healpix)
+    if match_to_targetids:
+        weights_file=weights_path+'delta-%d.fits.gz'%(healpix)
     
     Skewers = create_skewer_class()
     skewers = []
 
     f =  fitsio.FITS(delta_file)
+    if custom_weights or match_to_targetids:
+        w = fitsio.FITS(weights_file)
 
     if mocks == 'data':
         table_data = f[2].read()
         #wave_data = f[1].read()
         delta = f[3].read()
-        weight = f[4].read()     
+ 
+        if custom_weights or match_to_targetids:
+            weight_table = w[2].read()
+            weight_ids = weight_table["TARGETID"]
+            weight_lookup = {tid: j for j, tid in enumerate(weight_ids)}
+        
+        if custom_weights: 
+            weight = w[4].read()
+        else:
+            weight = f[4].read()
+
+
         #print(np.shape(wave_data))  
         #print(np.shape(delta),np.shape(weight))
         #print(np.shape(table_data))
         ra = table_data['RA']
         #print(np.shape(delta[len(ra)-1,:]))
 
-        for i in range(len(ra)):
+        for i in range(len(table_data)):
+            tid = table_data["TARGETID"][i]
+
+            if match_to_targetids and tid not in weight_lookup:
+                continue
+            if custom_weights:
+                j = weight_lookup[tid]
+                weight_data = weight[j, :]
+            else:
+                weight_data = weight[i, :]
+
+            wave_data = f[1].read()            
+            delta_data = delta[i,:]
+            #weight_data = weight[i,:]
+
             RA  = ra[i]
             Dec = table_data['DEC'][i]
             z_qso = table_data['Z'][i]
-            wave_data = f[1].read()            
-            delta_data = delta[i,:]
-            weight_data = weight[i,:]
+            
+
             # remove nans from delta_data and weight_data, downsize the arrays to non nan elements
             mask = np.isfinite(delta_data) & np.isfinite(weight_data)
             wave_data = wave_data[mask]
@@ -61,7 +89,10 @@ def get_skewers(healpix,deltas_path):
             loglam = f[hdu].read()['LOGLAM']
             wave_data=10.0**(loglam)
             delta_data=f[hdu].read('DELTA')
-            weight_data=f[hdu].read('WEIGHT')
+            if custom_weights:
+                weight_data = w[hdu].read('WEIGHT')
+            else:
+                weight_data=f[hdu].read('WEIGHT')
             # create skewer object for each sightline in the healpix pixel
             skewer = Skewers(wave_data, delta_data, weight_data,RA, Dec, z_qso,z_alpha,dz)
             skewers.append(skewer)

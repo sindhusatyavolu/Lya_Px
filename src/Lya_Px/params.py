@@ -15,6 +15,7 @@ redshifts_file = config.get("parameters", "redshifts")
 output_path = config.get("parameters", "output_path")
 theta_file = config.get("parameters", "theta_file")
 deltas_path = config.get("parameters", "deltas_path")
+weights_path = config.get("parameters", "weights_path")
 mocks = config.get("parameters", "mocks")
 
 redshifts = np.loadtxt(redshifts_file,skiprows=1) # redshifts and redshift bin widths
@@ -27,6 +28,8 @@ theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
 gauss_test = config.getboolean("parameters","gauss_test")
+custom_weights = config.getboolean("parameters","custom_weights")
+match_to_targetids = config.getboolean("parameters","match_to_targetids")
 
 all_healpix = config.getboolean("parameters", "all_healpix")
 if not all_healpix:
