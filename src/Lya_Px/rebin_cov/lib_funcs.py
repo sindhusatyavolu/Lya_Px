@@ -398,7 +398,7 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
 def get_sum_over_healpix(W_zh_am):
     return np.einsum('zahm->zam',W_zh_am)
 
-def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None):
+def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None,P1D_Z_M=None):
 
     with h5py.File(filename, 'w') as f:  
         # Save metadata as attributes
@@ -425,10 +425,13 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
         gV = f.create_group('V_Z_aM')
         gc = f.create_group('C_Z_AB')
         gck = f.create_group('C_Z_ABMN')
+        gp1d = f.create_group('P1D_Z_M')
 
         Nz, N_A, NK = P_Z_AM.shape
         for i in range(Nz):
             z_str = f'z_{i}'
+            gp1d.create_dataset(z_str,data=P1D_Z_M[i,:],compression="gzip",compression_opts=4)
+            
             for j in range(N_A):
                 theta_str = f'theta_rebin_{j}'
                 ds_name = f'{z_str}/{theta_str}'

@@ -25,7 +25,8 @@ def main():
     k_min_factor = config.getfloat('parameters','k_min_factor') # edge of first k bin will be k > k_fund*k_min_factor 
  
     cov_theta_bool = config.getboolean('parameters','cov_theta_bool') 
-  
+    weights_one = config.getboolean('parameters','weights_one')
+
     # define rebin parameters
     theta_bins_ratio = config.getfloat('parameters','theta_bins_ratio') # number of theta bins after rebinning will be Ntheta/theta_bins_ratio
     input_edges_A = config.get('parameters','input_edges_A') # boolean
@@ -41,6 +42,32 @@ def main():
     F_zh_am, W_zh_am, k_m = px_data.unpack_healpix(positive_frequencies=True)
     print(k_m)
     print('Shape of F is',np.shape(F_zh_am)) # (N_z, N_theta, N_hp, N_k)
+
+    #if weights_one:
+    #    W_zh_am = np.ones_like(W_zh_am)   
+
+    if weights_one:
+        W_zh_am = np.zeros_like(W_zh_am)
+
+        z_bins = sorted(set(px_data.z_bins))
+        theta_bins = sorted(set(px_data.theta_bins), key=lambda x: x[0])
+
+        z_to_i = {z: i for i, z in enumerate(z_bins)}
+        theta_to_i = {theta: i for i, theta in enumerate(theta_bins)}
+
+        for key, num_pairs in px_data.num_pairs.items():
+            z_bin, theta_min, theta_max = key
+
+            iz = z_to_i[z_bin]
+            itheta = theta_to_i[(theta_min, theta_max)]
+
+            assert num_pairs.shape == W_zh_am[iz, itheta, :, 0].shape, (
+                key, num_pairs.shape, W_zh_am[iz, itheta, :, 0].shape
+            )
+
+            W_zh_am[iz, itheta, :, :] = (num_pairs**2)[:,None]
+
+
     assert ~np.isnan(F_zh_am).any()
     assert ~np.isnan(W_zh_am).any()
     
@@ -173,8 +200,27 @@ def main():
     U_z_aMn, V_z_aM, V_z_am = bin_window(U_z_amn,B_M_m,W_z_am,R2_m,px_data.L_fft)
 
 
+    # measure average p1d
+    ntheta_a = len(px_data.theta_bin_min)
+    zvals = px_data.z_bin_centers
+    # (Nz, Nhp, Nk)
+    P1D_zh_m = np.stack([
+                        px_data.p1d[z][::ntheta_a]
+                        for z in z_vals
+                ])
+
+    # keep only positive frequencies
+    P1D_zh_m = P1D_zh_m[..., :len(px_data.k_arr)//2]
+   
+    P1D_zh_aM = rebin_k(P1D_zh_m[:,:,None,:],B_M_m,healpix=True)
+
+    P1D_zh_M = P1D_zh_aM[:,:,0,:]
+
+    P1D_z_M = np.mean(P1D_zh_M,axis=1)
+
+
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
-    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN)
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN,P1D_Z_M=P1D_z_M)
 
 
