@@ -205,19 +205,27 @@ def main():
     zvals = px_data.z_bin_centers
     # (Nz, Nhp, Nk)
     P1D_zh_m = np.stack([
-                        px_data.p1d[z][::ntheta_a]
-                        for z in z_vals
+                    px_data.p1d[z][::ntheta_a]
+                    for z in zvals
                 ])
 
     # keep only positive frequencies
     P1D_zh_m = P1D_zh_m[..., :len(px_data.k_arr)//2]
-   
+    # leave healpix pixels with no data 
+    P1D_zh_m = np.nan_to_num(
+        P1D_zh_m,
+        nan=0.0,
+        posinf=0.0,
+        neginf=0.0,
+     ) 
+  
     P1D_zh_aM = rebin_k(P1D_zh_m[:,:,None,:],B_M_m,healpix=True)
+    print(P1D_zh_aM)
 
     P1D_zh_M = P1D_zh_aM[:,:,0,:]
-
+    print(np.isnan(P1D_zh_M).any() )  
     P1D_z_M = np.mean(P1D_zh_M,axis=1)
-
+    print('Average P1D computed. Shape:',P1D_z_M.shape)
 
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
