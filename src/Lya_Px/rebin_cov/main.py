@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
 from Lya_Px.rebin_cov.healpix_px import Px_meas
-from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins, nearest_indx_many
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins, nearest_indx_many, average_p1d
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
@@ -36,36 +36,21 @@ def main():
     # Read data from HDF5 files and store px_data object
     px_data = Px_meas(root+datafile)
     #print(px_data.num_pairs)
+    ntheta_a = len(px_data.theta_bin_min)
+    zvals = px_data.z_bin_centers    
+
     num_pairs_per_key = {k: v.sum() for k, v in px_data.num_pairs.items()}
     print(num_pairs_per_key)
+
+    num_skewers_per_z = np.array([
+                  np.sum(px_data.num_skewers[z][::ntheta_a])
+                 for z in zvals
+    ])
+
 
     F_zh_am, W_zh_am, k_m = px_data.unpack_healpix(positive_frequencies=True)
     print(k_m)
     print('Shape of F is',np.shape(F_zh_am)) # (N_z, N_theta, N_hp, N_k)
-
-    #if weights_one:
-    #    W_zh_am = np.ones_like(W_zh_am)   
-
-    if weights_one:
-        W_zh_am = np.zeros_like(W_zh_am)
-
-        z_bins = sorted(set(px_data.z_bins))
-        theta_bins = sorted(set(px_data.theta_bins), key=lambda x: x[0])
-
-        z_to_i = {z: i for i, z in enumerate(z_bins)}
-        theta_to_i = {theta: i for i, theta in enumerate(theta_bins)}
-
-        for key, num_pairs in px_data.num_pairs.items():
-            z_bin, theta_min, theta_max = key
-
-            iz = z_to_i[z_bin]
-            itheta = theta_to_i[(theta_min, theta_max)]
-
-            assert num_pairs.shape == W_zh_am[iz, itheta, :, 0].shape, (
-                key, num_pairs.shape, W_zh_am[iz, itheta, :, 0].shape
-            )
-
-            W_zh_am[iz, itheta, :, :] = (num_pairs**2)[:,None]
 
 
     assert ~np.isnan(F_zh_am).any()
@@ -93,7 +78,7 @@ def main():
                 R2_m = R2_zm
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
-            R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)
+            R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)#*np.sinc(k_full*0.4/np.pi)
             R2_m = R_m**2
     else:
         R2_m = np.ones(px_data.N_fft)
@@ -219,16 +204,31 @@ def main():
         neginf=0.0,
      ) 
   
-    P1D_zh_aM = rebin_k(P1D_zh_m[:,:,None,:],B_M_m,healpix=True)
-    print(P1D_zh_aM)
+    P1D_zh_aM = rebin_k(P1D_zh_m[:,None,:,:],B_M_m,healpix=True)
+    print(np.shape(P1D_zh_aM),'P1D_zh_aM')
 
-    P1D_zh_M = P1D_zh_aM[:,:,0,:]
+    P1D_zh_M = P1D_zh_aM[:,0,:,:]
     print(np.isnan(P1D_zh_M).any() )  
-    P1D_z_M = np.mean(P1D_zh_M,axis=1)
-    print('Average P1D computed. Shape:',P1D_z_M.shape)
+    
+
+    W_zh_m = np.stack([px_data.p1d_weights[z][::ntheta_a] for z in zvals])
+    for z in zvals:
+        print(px_data.p1d_weights[z][::ntheta_a])
+    
+    # leave healpix pixels with no data 
+    W_zh_m = np.nan_to_num(
+        W_zh_m,
+        nan=0.0,
+        posinf=0.0,
+        neginf=0.0,
+     )
+ 
+    P1D_z_M, V_z_M = average_p1d(P1D_zh_M,W_zh_m,R2_m,px_data.L_fft,B_M_m)  
+    #P1D_z_M = np.mean(P1D_zh_M,axis=1)
+    #V_z_M = np.mean(W_zh_M,axis=1)
 
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
-    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN,P1D_Z_M=P1D_z_M)
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN,P1D_Z_M=P1D_z_M,V_Z_M=V_z_M,nskewers_z=num_skewers_per_z,B_M_m=B_M_m)
 
 

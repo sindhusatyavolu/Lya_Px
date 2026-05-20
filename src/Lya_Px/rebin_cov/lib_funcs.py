@@ -55,7 +55,7 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type)
 
     # stop roughly at 1/4 of the Nyquist frequency for now (equivalent to rebinning 4 pixels)
     #k_max= max_k/k_max_ratio
-   
+     
     print('k < ',k_max)
 
     #k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
@@ -181,6 +181,7 @@ def rebin_k(F_zh_am,B_M_m, healpix):
     '''
     if healpix==True:
         # numerator: (Z,H,a,M)
+        print(np.shape(F_zh_am),np.shape(B_M_m))
         num_k = np.einsum('zham,Mm->zhaM', F_zh_am, B_M_m, optimize=True)
         # denom: (M,) -> (1,1,1,M) for broadcasting
         den_k = np.einsum('Mm->M', B_M_m)[None, None, None, :]
@@ -242,6 +243,18 @@ def calculate_V_zh_AM(W_zh_AM,R2_M,L):
     print(np.shape(estnorm),'denom')
     return estnorm  
 
+def calculate_V_zh_M(W_zh_M,R2_M,L):
+    '''
+    Calculates the normalisation from given W, R
+
+    '''
+    print(np.shape(W_zh_M),np.shape(R2_M))
+    denom = np.absolute(np.fft.ifft(np.fft.fft(W_zh_M,axis=-1)* np.fft.fft(R2_M)))    
+    estnorm = np.absolute(denom/L)
+    print(np.shape(estnorm),'denom')
+    return estnorm  
+
+
 def average_px(F_zh_AM,W_zh_am,R2_m,L,B_A_a,B_M_m):
     '''
     Average of Px over combined F, V of all healpix pixels
@@ -266,6 +279,34 @@ def average_px(F_zh_AM,W_zh_am,R2_m,L,B_A_a,B_M_m):
 
 
     return P_z_AM, V_z_AM
+
+
+def average_p1d(F_zh_M,W_zh_m,R2_m,L,B_M_m):
+    '''
+    Average of P1D over combined F, V of all healpix pixels
+
+    '''
+    N_fft = len(R2_m)
+    print('Computing average...')
+    W_z_m = np.einsum('zhm->zm',W_zh_m)
+
+    V_z_m = calculate_V_zh_M(W_z_m,R2_m,L)
+    V_z_m = V_z_m[...,:N_fft//2]
+
+    V_z_am = V_z_m[:, None, :]     # (Z, 1, m)
+    V_z_aM = rebin_k(V_z_am, B_M_m, healpix=False)
+    V_z_M = V_z_aM[:, 0, :]        # (Z, M)
+ 
+    print('done')
+
+    num_k = np.einsum('zhM->zM', F_zh_M)
+
+    P_z_M = np.divide(num_k, V_z_M, out=np.zeros_like(num_k), where=V_z_M>0)
+
+    print('Shape of average Px is',np.shape(P_z_M))
+
+
+    return P_z_M, V_z_M
 
 def compute_covariance(F_zh_AM,V_zh_AM):
     '''
@@ -390,7 +431,8 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
     num = np.einsum('Mm,zam,zamn->zaMn', B_M_m, V_z_am, U_z_amn, optimize=True)
 
     # Safe divide, broadcasting over n
-    U_z_aMn = np.divide(num, V_z_aM[..., None]*np.einsum('Mm->M', B_M_m)[...,None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
+    #U_z_aMn = np.divide(num, V_z_aM[..., None]*np.einsum('Mm->M', B_M_m)[...,None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
+    U_z_aMn = np.divide(num, V_z_aM[..., None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
     print('Shape of window matrix after rebinning in k is ',np.shape(U_z_aMn))
 
     return U_z_aMn, V_z_aM, V_z_am
@@ -398,7 +440,7 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
 def get_sum_over_healpix(W_zh_am):
     return np.einsum('zahm->zam',W_zh_am)
 
-def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None,P1D_Z_M=None):
+def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None,P1D_Z_M=None,V_Z_M=None,nskewers_z=None,B_M_m=None):
 
     with h5py.File(filename, 'w') as f:  
         # Save metadata as attributes
@@ -414,7 +456,8 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
         g.attrs['theta_max_A'] = theta_max_A
         g.attrs['cov_theta_bool'] = cov_theta
         g.create_dataset('B_A_a',data=B_A_a)
-
+        g.create_dataset('num_skewers',data = nskewers_z)
+        g.create_dataset('B_M_m',data=B_M_m)
 
         
         
@@ -426,12 +469,14 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
         gc = f.create_group('C_Z_AB')
         gck = f.create_group('C_Z_ABMN')
         gp1d = f.create_group('P1D_Z_M')
+        gV1d = f.create_group('V_Z_M')
 
         Nz, N_A, NK = P_Z_AM.shape
         for i in range(Nz):
             z_str = f'z_{i}'
             gp1d.create_dataset(z_str,data=P1D_Z_M[i,:],compression="gzip",compression_opts=4)
-            
+            gV1d.create_dataset(z_str,data=V_Z_M[i,:],compression="gzip",compression_opts=4)
+
             for j in range(N_A):
                 theta_str = f'theta_rebin_{j}'
                 ds_name = f'{z_str}/{theta_str}'

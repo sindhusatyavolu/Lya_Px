@@ -116,16 +116,20 @@ def save_hp(results,output_path,healpixlist,z_alpha, dz, pw_A):
     p1d_all = defaultdict(list)
     no_of_pairs = defaultdict(list)  
     #weights_average = defaultdict(list)  
+    p1d_weights = defaultdict(list)
+    no_of_skewers = defaultdict(list)
 
     # accumulate results in only redshift and theta bins that exist for each healpixel --- no all healpixels are needed
 
-    for k_arr, px_dict,p1d_dict, px_weights, npairs in results:
+    for k_arr, px_dict,p1d_dict, px_weights, npairs, p1d_w_dict,nskewers in results:
         for key in px_dict:
             px_all[key].append(px_dict[key])  
             px_weights_all[key].append(px_weights[key])
             p1d_all[key[0]].append(p1d_dict[key[0]])
+            p1d_weights[key[0]].append(p1d_w_dict[key[0]])
             no_of_pairs[key].append(npairs[key])
             #weights_average[key].append(w_avg[key])
+            no_of_skewers[key[0]].append(nskewers[key[0]])
 
     filename = output_path + f'px-nhp_{len(healpixlist)}-zbins_{len(z_alpha)}-thetabins_{len(theta_array)}.hdf5'
 
@@ -145,6 +149,8 @@ def save_hp(results,output_path,healpixlist,z_alpha, dz, pw_A):
             theta_min, theta_max = theta_bin
             g = f.create_group(f'z_{z_bin:.2f}_theta_{theta_min*RAD_TO_ARCMIN:.2f}_{theta_max*RAD_TO_ARCMIN:.2f}')
             g.create_dataset('p1d', data=p1d_all[key[0]])
+            g.create_dataset('p1d_weights',data=p1d_weights[key[0]])
+            g.create_dataset('p1d_nskewers',data=no_of_skewers[key[0]])
             #print('px_all[key] shape:', np.shape(px_all[key]))
             g.create_dataset('px', data=px_all[key])
             g.create_dataset('px_weights', data=px_weights_all[key])

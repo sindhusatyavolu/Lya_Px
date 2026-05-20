@@ -24,12 +24,13 @@ def get_px(all_skewers,theta_min,theta_max):
     w_v_m=np.zeros(N_fft)
     if gauss_test:
         # Generate fake input power spectrum
-        input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
+        #input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
+        input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
         # read the skewer details from the first one, assuming all are equal-sized
         Npix = all_skewers[0].delta_fft_grid.size
         L_wave = all_skewers[0].pw_A * Npix
         # initiate the skewer maker
-        maker=SkewerMaker(N=Npix,L=L_wave,input_power=input_p, seed=5432)
+        maker=SkewerMaker(N=Npix,L=L_wave,input_power=input_p, seed=None,resolution=0.7656587577591817)#,noise=1.0)
     products = []
     products_weight = []
     for i in range(1,len(all_skewers)):
@@ -46,12 +47,14 @@ def get_px(all_skewers,theta_min,theta_max):
                 if gauss_test:
                     # generate two correlated Gaussian skewers as a known test case, use these instead of real delta1 and delta2
                     g_skewer_1,g_skewer_2=maker.make_skewer_pair()
-                    # weight1 = np.ones(all_skewers[i].weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
-                    # weight2 = weight1 # uncomment if you want equal weighting for all pixels
+                    weight1 = np.ones(all_skewers[i].weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+                    weight2 = weight1 # uncomment if you want equal weighting for all pixels
                     weighted_delta1 = g_skewer_1 * weight1
                     weighted_delta2 = g_skewer_2 * weight2
                     #print('weighted delta1',np.nonzero(weighted_delta1))
                 else:
+                    #weight1 = np.ones(all_skewers[i].weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+                    #weight2 = weight1 # uncomment if you want equal weighting for all pixels
                     weighted_delta1 = delta1*weight1
                     weighted_delta2 = delta2*weight2
 

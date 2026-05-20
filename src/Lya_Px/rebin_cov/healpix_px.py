@@ -20,7 +20,9 @@ class Px_meas(object):
         self.num_pairs = {}
         self.avg_weights = {}
         self.p1d = {}
+        self.p1d_weights={}
         self.p1d_avg = {}
+        self.num_skewers = {}
         self.px_avg = {}
         self.covariance = {}
         self.px_avg_bin = {}
@@ -61,8 +63,9 @@ class Px_meas(object):
                 self.px[key] = group['px'][:]
                 self.px_weights[key] = group['px_weights'][:]
                 self.p1d[key[0]] = group['p1d'][:]
+                self.p1d_weights[key[0]]=group['p1d_weights'][:]
                 self.num_pairs[key] = group['no_of_pairs'][:]
-
+                self.num_skewers[key[0]] = group['p1d_nskewers'][:]
                 self.theta_bins.append((theta_min, theta_max))
                 self.z_bins.append(z_bin)
         

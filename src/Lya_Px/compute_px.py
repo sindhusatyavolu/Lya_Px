@@ -31,7 +31,9 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     px_weights = {}
     p1d_dict = {}
     npairs = {}
+    nskewers = {}
     weights_average = {}  # sum of product of weights for each (z, θmin, θmax) pair in a healpix pixel
+    weights_dict = {} # sum of product of weights for each z in a heapix pixel W_zh_m
 
     for z in range(len(z_alpha)):
         # wavelength range covered by this redshift bin
@@ -68,6 +70,8 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
                 px_weights[(z_bin, theta_bin)] = np.full(N_fft, np.nan)
                 npairs[(z_bin, theta_bin)] = 0
             p1d_dict[z_bin] = np.full(N_fft, np.nan)
+            weights_dict[z_bin] = np.full(N_fft,np.nan)
+            nskewers[z_bin]=0
             continue
         
         # gather the sightlines that fall either partially or completely within the redshift bin wavelength range.
@@ -81,7 +85,7 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             skewer.map_to_fftgrid(wave_fft_grid,N_fft)
 
         # compute P1D 
-        p1d,p1d_norm = get_p1d(all_skewers,N_fft)
+        p1d,p1d_norm,w_hm = get_p1d(all_skewers,N_fft)
 
         for theta in range(len(theta_min_array)):
             # create keys for Px dict    
@@ -106,8 +110,10 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
             # store Px and weights in dicts for each z_bin and theta bin
             result_dict[(z_bin, theta_bin)] = result[0] # dimensionles Px; has to be normalized 
             px_weights[(z_bin, theta_bin)] = result[1]  # Px of weights for normalization
-            p1d_dict[z_bin] = p1d_norm # normalized P1D in the redshift bin
+            p1d_dict[z_bin] = p1d_norm #  P1D normalised by Nq in the redshift bin
+            weights_dict[z_bin] = w_hm # W_zh_m normalised by Nq in the redshift bin 
             npairs[(z_bin, theta_bin)] = no_of_pairs # number of pairs of sightlines in this theta bin
+            nskewers[z_bin] = len(all_skewers)
             
             #weights_average[(z_bin, theta_bin)] = result[4]
             #if no_of_pairs==0:
@@ -127,9 +133,11 @@ def compute_px(healpix, z_alpha, dz, theta_min_array, theta_max_array, wave_desi
     for z in z_alpha:
         if z not in p1d_dict:
             p1d_dict[z] = np.full(N_fft, np.nan)
+            weights_dict[z] = np.full(N_fft,np.nan)
+            nskewers[z] = 0
         
     
     
-    return k_arr, result_dict, p1d_dict ,px_weights, npairs #, weights_average
+    return k_arr, result_dict, p1d_dict ,px_weights, npairs, weights_dict, nskewers #, weights_average
 
 
