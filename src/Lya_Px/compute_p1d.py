@@ -36,7 +36,10 @@ def get_p1d(all_skewers,N_fft):
 
         if gauss_test:
             g_skewer_1,g_skewer_2=maker.make_skewer_pair()
-            weight = np.ones(skewer.weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+            if set_weights_one:
+                weight = np.ones(skewer.weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+            else:
+               weight = skewer.weight_fft_grid
             delta = g_skewer_1 
         else:
             delta = skewer.delta_fft_grid

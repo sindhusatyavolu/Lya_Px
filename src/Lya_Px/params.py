@@ -28,6 +28,7 @@ theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
 gauss_test = config.getboolean("parameters","gauss_test")
+set_weights_one = config.getboolean("parameters","set_weights_to_one")
 custom_weights = config.getboolean("parameters","custom_weights")
 match_to_targetids = config.getboolean("parameters","match_to_targetids")
 
