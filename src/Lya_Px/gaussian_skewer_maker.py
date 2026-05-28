@@ -87,8 +87,13 @@ class SkewerMaker(object):
         # correlate modes, taking into account PX = f_px P1D
         modes_B = self.f_px * modes_A + np.sqrt(1-self.f_px**2) * modes_C
          # iFFT to get skewers
-        skewer_A=np.fft.ifft(modes_A).real
-        skewer_B=np.fft.ifft(modes_B).real
+        if self.resolution is not None:
+           R = np.exp(-0.5*(self.k*self.resolution)**2)
+           skewer_A=np.fft.ifft(modes_A*R).real
+           skewer_B=np.fft.ifft(modes_B*R).real
+        else:
+           skewer_A=np.fft.ifft(modes_A).real
+           skewer_B=np.fft.ifft(modes_B).real
 
         if self.noise is not None and self.noise > 0:
             skewer_A += self.gen.normal(loc=0.0, scale=self.noise, size=self.N)

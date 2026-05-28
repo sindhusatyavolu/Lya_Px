@@ -5,14 +5,18 @@ class InputPower(object):
     """Setup an initial power object given input parameters"""
 
 
-    def __init__(self,P0=1.0,k0=1,kF=10,f_px=0.2):
+    def __init__(self,P0=1.0,k0=1,kF=10,f_px=0.2,add_spike=False,k_spike=None,spike_width_npix=None,spike_height=None):
         """Define here your favorite power spectrum."""
 
         self.P0=P0
         self.k0=k0
         self.kF=kF
         self.f_px=f_px
-
+        
+        self.add_spike=add_spike
+        self.k_spike=k_spike
+        self.spike_width_npix=spike_width_npix
+        self.spike_height=spike_height
 
     def get_true_p1d(self,k):
         """Evaluate P1D at input wavenumbers k"""
@@ -43,6 +47,14 @@ class InputPower(object):
 
         # further suppressed with a Gaussian at kF=10
         P *= np.exp(-(k/self.kF)**2)
+
+        # Optionally add a spike 
+        if self.add_spike:
+            P_spike = np.ones_like(P)
+            closest_k = np.argmin(np.abs(k - self.k_spike))
+            P_spike[closest_k:closest_k+self.spike_width_npix] = self.spike_height
+            P *= P_spike
+
 
         # PX will be a scaled version of P1D, for now
         if is_px:

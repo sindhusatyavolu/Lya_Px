@@ -24,7 +24,11 @@ def get_p1d(all_skewers,N_fft):
     if gauss_test:
         # Generate fake input power spectrum
         #input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
-        input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
+        if add_spike:
+            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7,add_spike=True,k_spike=k_spike,spike_width_npix=spike_width_npix,spike_height=spike_height)
+        else:
+            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
+        
         # read the skewer details from the first one, assuming all are equal-sized
         Npix = all_skewers[0].delta_fft_grid.size
         L_wave = all_skewers[0].pw_A * Npix

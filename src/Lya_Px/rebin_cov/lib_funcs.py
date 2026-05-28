@@ -60,7 +60,8 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type)
 
     #k_edges=np.arange(0.01*dk_bin,k_max+dk_bin,dk_bin)
     k_edges = np.arange(k_min,k_max+dk_bin,dk_bin)
-
+    print('k edges',k_edges)
+    print(abs(k_arr))
     Nk=k_edges.size-1
     N_fft = len(k_arr)
     if int(k_bins_ratio) == 1 and np.isclose(k_arr[0], 0.0):
@@ -70,16 +71,42 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type)
     else:
         #define bin function
         B_M_m=np.zeros([Nk,N_fft]) # includes negative k values
-        if bin_func_type == 'top_hat':
-            for i in range(Nk):
-                inbin=(abs(k_arr)>=k_edges[i]) & (abs(k_arr)<k_edges[i+1]) # left closed, right open edges
-                B_M_m[i,inbin]=1
+        #if bin_func_type == 'top_hat':
+            
+            #for i in range(Nk):
+            #    inbin=(abs(k_arr)>=k_edges[i]) & (abs(k_arr)<k_edges[i+1]) # left closed, right open edges
+            #    B_M_m[i,inbin]=1
+            #print(np.sum(B_M_m[i,inbin]))
+            
+        # Assign each original bin 'm' to a coarse bin 'M'
+        #M_idx = np.digitize(abs(k_arr), k_edges, right=False) - 1   # in [0, Nk-1]
+        #valid = (M_idx>=0) & (M_idx<Nk)
+
+        #if bin_func_type == 'top_hat':
+        #  for m, M in enumerate(M_idx):
+        #        if valid[m]:
+        #            B_M_m[M, m] += 1.0
+ 
+        
+        # Bin by indices instead, as comparing floats or k values is giving errors
+        pos = k_arr > 0 # exlcude DC mode
+        k_pos = k_arr[pos]
+        m_mode = np.rint(k_pos / k_fund).astype(int) # these are fourier  m modes 
+        m_min = int(np.rint(k_edges[0] / k_fund)) # these is m index corresponding M edge 0
+        m_max = int(np.rint(k_edges[-1] / k_fund)) # these is m index corresponding M edge final
+        M_idx = ((m_mode - m_min) // k_bins_ratio).astype(int) # counting m modes  within each M mode
+        valid = (m_mode >= m_min) & (m_mode < m_max) # outside these indices B_M_m has to be zero as these bins will be excluded
+        m_idx = np.arange(len(k_pos))
+        if bin_func_type=='top_hat':
+            B_M_m[M_idx[valid], m_idx[valid]] = 1.0
+
+        print(np.sum(B_M_m,axis=1))
 
         k_M =0.5*(k_edges[:-1] + k_edges[1:])
     
     print('Done')
     print('shape of B_M_m is ', np.shape(B_M_m))    #define bin function
-
+   
     #return B_M_m,k_M
     return B_M_m, k_edges
 
@@ -431,8 +458,8 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
     num = np.einsum('Mm,zam,zamn->zaMn', B_M_m, V_z_am, U_z_amn, optimize=True)
 
     # Safe divide, broadcasting over n
-    #U_z_aMn = np.divide(num, V_z_aM[..., None]*np.einsum('Mm->M', B_M_m)[...,None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
-    U_z_aMn = np.divide(num, V_z_aM[..., None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
+    U_z_aMn = np.divide(num, V_z_aM[..., None]*np.einsum('Mm->M', B_M_m)[...,None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
+    #U_z_aMn = np.divide(num, V_z_aM[..., None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
     print('Shape of window matrix after rebinning in k is ',np.shape(U_z_aMn))
 
     return U_z_aMn, V_z_aM, V_z_am

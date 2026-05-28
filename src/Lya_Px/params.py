@@ -27,8 +27,20 @@ theta_array = np.loadtxt(theta_file, skiprows=1)
 theta_array = np.atleast_2d(theta_array)
 healpix_file = config.get("parameters", "healpix_file")
 healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
+
+# Testing parameters
 gauss_test = config.getboolean("parameters","gauss_test")
 set_weights_one = config.getboolean("parameters","set_weights_to_one")
+add_spike = config.getboolean("parameters","add_spike")
+k_spike = config.getfloat("parameters","k_spike")
+spike_width_npix = config.getint("parameters","spike_width_npix")
+spike_height = config.getfloat("parameters","spike_height")
+add_skylines = config.getboolean("parameters","add_skylines")
+skyline_seperation_npix = config.getint("parameters","skyline_seperation_npix")
+skyline_width_npix = config.getint("parameters","skyline_width_npix")
+skyline_loc_npix = config.getint("parameters","skyline_loc_npix")
+
+
 custom_weights = config.getboolean("parameters","custom_weights")
 match_to_targetids = config.getboolean("parameters","match_to_targetids")
 

@@ -25,7 +25,12 @@ def get_px(all_skewers,theta_min,theta_max):
     if gauss_test:
         # Generate fake input power spectrum
         #input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
-        input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
+
+        if add_spike:
+            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7,add_spike=True,k_spike=k_spike,spike_width_npix=spike_width_npix,spike_height=spike_height)
+        else:
+            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
+
         # read the skewer details from the first one, assuming all are equal-sized
         Npix = all_skewers[0].delta_fft_grid.size
         L_wave = all_skewers[0].pw_A * Npix
@@ -47,8 +52,18 @@ def get_px(all_skewers,theta_min,theta_max):
                 if gauss_test:
                     # generate two correlated Gaussian skewers as a known test case, use these instead of real delta1 and delta2
                     g_skewer_1,g_skewer_2=maker.make_skewer_pair()
-                    weight1 = np.ones(all_skewers[i].weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
-                    weight2 = weight1 # uncomment if you want equal weighting for all pixels
+                    if set_weights_one:
+                        weight1 = np.ones(all_skewers[i].weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+                        weight2 = weight1 # uncomment if you want equal weighting for all pixels
+                    if add_skylines:
+                        s = np.ones(all_skewers[i].weight_fft_grid.shape)
+                        mask_indices = np.arange(skyline_loc_npix,skyline_loc_npix + skyline_width_npix)
+                        mask_indices_2 = np.arange(skyline_loc_npix + skyline_width_npix + skyline_seperation_npix, skyline_loc_npix + skyline_width_npix + skyline_seperation_npix + skyline_width_npix)
+                        s[mask_indices] = 0
+                        s[mask_indices_2] = 0
+                        weight1 *= s
+                        weight2 *= s
+ 
                     weighted_delta1 = g_skewer_1 * weight1
                     weighted_delta2 = g_skewer_2 * weight2
                     #print('weighted delta1',np.nonzero(weighted_delta1))

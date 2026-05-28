@@ -58,6 +58,7 @@ def main():
     
     input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
     res_path = config.getboolean('parameters','res_path') # boolean
+    gauss_res = config.getboolean('parameters','gauss_res') # boolean
 
     # set average resolution
     if input_avg_res == True:
@@ -78,7 +79,10 @@ def main():
                 R2_m = R2_zm
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
-            R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)#*np.sinc(k_full*0.4/np.pi)
+            if gauss_res:
+                R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)#*np.sinc(k_full*0.4/np.pi)
+            else:
+                R_m = np.exp(-0.5 * (k_full * sigma_l_avg) ** 2)*np.sinc(k_full*0.4/np.pi)
             R2_m = R_m**2
     else:
         R2_m = np.ones(px_data.N_fft)
