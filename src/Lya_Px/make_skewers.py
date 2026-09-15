@@ -133,6 +133,9 @@ def get_skewers(healpix, deltas_path):
 
     delta_file = deltas_path + 'delta-%d.fits.gz' % healpix
 
+    if mocks == 'naim_p1d':
+        delta_file = deltas_path + 'delta-%d.fits' % healpix
+
     if match_to_targetids:
         weights_file = weights_path + 'delta-%d.fits.gz' % healpix
 
@@ -268,20 +271,28 @@ def get_skewers(healpix, deltas_path):
 
     else:
         for hdu in range(1, len(f)):
+            if hdu % 1000 == 0:
+                print(f"Reading HDU {hdu}/{len(f)-1}", flush=True)
 
-            RA = f[hdu].read_header()['RA']
-            Dec = f[hdu].read_header()['DEC']
-            z_qso = f[hdu].read_header()['Z']
+            header = f[hdu].read_header()
+            RA = header['RA']
+            Dec = header['DEC']
+            z_qso = header['Z']
 
-            loglam = f[hdu].read()['LOGLAM']
-            wave_data = 10.0 ** loglam
-
-            delta_data = f[hdu].read('DELTA')
+            if mocks == 'naim_p1d':
+                data = f[hdu].read(columns=['LAMBDA', 'DELTA', 'WEIGHT'])
+                wave_data = data['LAMBDA']
+            else:
+               data = f[hdu].read(columns=['LOGLAM', 'DELTA', 'WEIGHT'])
+               loglam = data['LOGLAM']
+               wave_data = 10.0 ** loglam
+    
+            delta_data = data['DELTA']
 
             if custom_weights:
                 weight_data = w[hdu].read('WEIGHT')
             else:
-                weight_data = f[hdu].read('WEIGHT')
+                weight_data = data['WEIGHT']
 
             # For this branch, also preserve internal masked pixels
             # if they are present as NaNs.
@@ -291,6 +302,26 @@ def get_skewers(healpix, deltas_path):
                 (lambda_rf >= 1040.0)
                 & (lambda_rf <= 1205.0)
             )
+
+            # if we want to measure CIII forest, mask region outside 1600-1850 RF
+            if ciii_region:
+                forest_mask = (
+                    (lambda_rf >= 1600.0)
+                    & (lambda_rf <= 1850.0)
+                )
+
+            if SB1:
+                forest_mask = (
+                    (lambda_rf >= 1260.0)
+                    & (lambda_rf <= 1375.0)
+                )
+
+            if SB2:
+                forest_mask = (
+                    (lambda_rf >= 1420.0)
+                    & (lambda_rf <= 1520.0)
+                )
+
 
             wave_data = wave_data[forest_mask]
             delta_data = delta_data[forest_mask].copy()
