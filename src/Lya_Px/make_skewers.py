@@ -3,7 +3,11 @@ from Lya_Px.params import *
 # import argparse
 from collections import defaultdict
 import fitsio
+from astropy.io import fits
 
+
+
+"""
 def get_skewers(healpix,deltas_path):
     '''
     healpix (int): integer, healpix pixel number 
@@ -25,6 +29,15 @@ def get_skewers(healpix,deltas_path):
     if custom_weights or match_to_targetids:
         w = fitsio.FITS(weights_file)
 
+    if drop_dlas:
+       fdla = fits.open(dla_cat)
+       dla_target_ids = fdla[1].data['TARGETID']
+
+    if drop_bals:
+       fbal = fits.open(bal_cat)
+       ai_civ_mask = (fbal[1].data['AI_CIV']>ai_civ_mask_cutoff)
+       bal_target_ids = fbal[1].data['TARGETID'][ai_civ_mask]
+
     if mocks == 'data':
         table_data = f[2].read()
         #wave_data = f[1].read()
@@ -34,7 +47,8 @@ def get_skewers(healpix,deltas_path):
             weight_table = w[2].read()
             weight_ids = weight_table["TARGETID"]
             weight_lookup = {tid: j for j, tid in enumerate(weight_ids)}
-        
+            print(len(weight_lookup),'matched weights')
+            print(len(weight_ids),'weights') 
         if custom_weights: 
             weight = w[4].read()
         else:
@@ -50,6 +64,14 @@ def get_skewers(healpix,deltas_path):
         for i in range(len(table_data)):
             tid = table_data["TARGETID"][i]
 
+            # check if the sightline exists in DLA catalog file
+            if drop_dlas and tid in dla_target_ids:
+                    print('match')
+                    continue
+            if drop_bals and tid in bal_target_ids:
+                    print('match')
+                    continue
+        
             if match_to_targetids and tid not in weight_lookup:
                 continue
             if custom_weights:
@@ -67,7 +89,7 @@ def get_skewers(healpix,deltas_path):
             z_qso = table_data['Z'][i]
             
 
-            # remove nans from delta_data and weight_data, downsize the arrays to non nan elements
+            # remove nans (non forest regions) from delta_data and weight_data, downsize the arrays to non nan elements
             mask = np.isfinite(delta_data) & np.isfinite(weight_data)
             wave_data = wave_data[mask]
             delta_data = delta_data[mask]
@@ -98,6 +120,205 @@ def get_skewers(healpix,deltas_path):
             skewers.append(skewer)
    
     return skewers
+"""
+
+def get_skewers(healpix, deltas_path):
+    """
+    healpix (int): healpix pixel number
+    deltas_path (str): path to directory containing delta files
+
+    Returns:
+        skewers (list): list of Skewers objects, one per sightline
+    """
+
+    delta_file = deltas_path + 'delta-%d.fits.gz' % healpix
+
+    if match_to_targetids:
+        weights_file = weights_path + 'delta-%d.fits.gz' % healpix
+
+    Skewers = create_skewer_class()
+    skewers = []
+
+    f = fitsio.FITS(delta_file)
+
+    if custom_weights or match_to_targetids:
+        w = fitsio.FITS(weights_file)
+
+    if drop_dlas:
+        fdla = fits.open(dla_cat)
+        dla_target_ids = fdla[1].data['TARGETID']
+
+    if drop_bals:
+        fbal = fits.open(bal_cat)
+        ai_civ_mask = fbal[1].data['AI_CIV'] > ai_civ_mask_cutoff
+        bal_target_ids = fbal[1].data['TARGETID'][ai_civ_mask]
+
+    if mocks == 'data':
+
+        table_data = f[2].read()
+        wave_full = f[1].read()
+        delta = f[3].read()
+
+        if custom_weights or match_to_targetids:
+            weight_table = w[2].read()
+            weight_ids = weight_table["TARGETID"]
+            weight_lookup = {tid: j for j, tid in enumerate(weight_ids)}
+            print(len(weight_lookup), 'matched weights')
+
+        if custom_weights:
+            weight = w[4].read()
+        else:
+            weight = f[4].read()
+
+        ra = table_data['RA']
+
+        for i in range(len(table_data)):
+
+            tid = table_data["TARGETID"][i]
+
+            if drop_dlas and tid in dla_target_ids:
+                print('match DLA')
+                continue
+
+            if drop_bals and tid in bal_target_ids:
+                print('match BAL')
+                continue
+
+            if match_to_targetids and tid not in weight_lookup:
+                continue
+
+            if custom_weights:
+                j = weight_lookup[tid]
+                weight_data = weight[j, :].copy()
+            else:
+                weight_data = weight[i, :].copy()
+
+            wave_data = wave_full.copy()
+            delta_data = delta[i, :].copy()
+
+            RA = ra[i]
+            Dec = table_data['DEC'][i]
+            z_qso = table_data['Z'][i]
+
+            # -------------------------------------------------------
+            # IMPORTANT CHANGE:
+            # Define the Ly-alpha forest geometrically using rest-frame
+            # wavelength, not by finite(delta/weight).
+            # -------------------------------------------------------
+            lambda_rf = wave_data / (1.0 + z_qso)
+
+            forest_mask = (
+                (lambda_rf >= 1040.0)
+                & (lambda_rf <= 1205.0)
+            )
+
+            # if we want to measure CIII forest, mask region outside 1600-1850 RF
+            if ciii_region:
+                forest_mask = (
+                    (lambda_rf >= 1600.0)
+                    & (lambda_rf <= 1850.0)
+                )
+            
+            if SB1:
+                forest_mask = (
+                    (lambda_rf >= 1260.0)
+                    & (lambda_rf <= 1375.0)
+                )  
+ 
+            if SB2:
+                forest_mask = (
+                    (lambda_rf >= 1420.0)
+                    & (lambda_rf <= 1520.0)
+                )
+
+
+            wave_data = wave_data[forest_mask]
+            delta_data = delta_data[forest_mask]
+            weight_data = weight_data[forest_mask]
+
+            # -------------------------------------------------------
+            # IMPORTANT CHANGE:
+            # Inside the forest, masked pixels may be NaN.
+            # Keep them on the wavelength grid but set weight = 0.
+            # -------------------------------------------------------
+            bad = (
+                ~np.isfinite(delta_data)
+                | ~np.isfinite(weight_data)
+            )
+
+            delta_data[bad] = 0.0
+            weight_data[bad] = 0.0
+
+            assert len(wave_data) == len(delta_data) == len(weight_data)
+
+            skewer = Skewers(
+                wave_data,
+                delta_data,
+                weight_data,
+                RA,
+                Dec,
+                z_qso,
+                z_alpha,
+                dz
+            )
+
+            skewers.append(skewer)
+
+        print('skewers read')
+
+    else:
+        for hdu in range(1, len(f)):
+
+            RA = f[hdu].read_header()['RA']
+            Dec = f[hdu].read_header()['DEC']
+            z_qso = f[hdu].read_header()['Z']
+
+            loglam = f[hdu].read()['LOGLAM']
+            wave_data = 10.0 ** loglam
+
+            delta_data = f[hdu].read('DELTA')
+
+            if custom_weights:
+                weight_data = w[hdu].read('WEIGHT')
+            else:
+                weight_data = f[hdu].read('WEIGHT')
+
+            # For this branch, also preserve internal masked pixels
+            # if they are present as NaNs.
+            lambda_rf = wave_data / (1.0 + z_qso)
+
+            forest_mask = (
+                (lambda_rf >= 1040.0)
+                & (lambda_rf <= 1205.0)
+            )
+
+            wave_data = wave_data[forest_mask]
+            delta_data = delta_data[forest_mask].copy()
+            weight_data = weight_data[forest_mask].copy()
+
+            bad = (
+                ~np.isfinite(delta_data)
+                | ~np.isfinite(weight_data)
+            )
+
+            delta_data[bad] = 0.0
+            weight_data[bad] = 0.0
+
+            skewer = Skewers(
+                wave_data,
+                delta_data,
+                weight_data,
+                RA,
+                Dec,
+                z_qso,
+                z_alpha,
+                dz
+            )
+
+            skewers.append(skewer)
+
+    return skewers
+
     
 def create_skewer_class():
     class Skewers:

@@ -20,19 +20,24 @@ def main():
     root = config.get('paths', 'root')
     datafile = config.get('paths', 'datafile')
 
+    # define rebin parameters
     k_bins_ratio = config.getfloat('parameters','k_bins_ratio') # number of k bins after rebinning will be Nk/k_bins_ratio
     k_max = config.getfloat('parameters','k_max') # maximum frequency will be k_max
     k_min_factor = config.getfloat('parameters','k_min_factor') # edge of first k bin will be k > k_fund*k_min_factor 
- 
-    cov_theta_bool = config.getboolean('parameters','cov_theta_bool') 
-    weights_one = config.getboolean('parameters','weights_one')
 
-    # define rebin parameters
     theta_bins_ratio = config.getfloat('parameters','theta_bins_ratio') # number of theta bins after rebinning will be Ntheta/theta_bins_ratio
     input_edges_A = config.get('parameters','input_edges_A') # boolean
     if input_edges_A == 'True':
         user_theta_edges_A = config.get('parameters','user_theta_edges_A') # comma separated list of theta edges
 
+    # Define resolution
+    input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
+    res_path = config.getboolean('parameters','res_path') # boolean
+    gauss_res = config.getboolean('parameters','gauss_res') # boolean
+    
+    # Additonal options
+    cov_theta_bool = config.getboolean('parameters','cov_theta_bool')  # returns full covariance across theta and k bins if True
+   
     # Read data from HDF5 files and store px_data object
     px_data = Px_meas(root+datafile)
     #print(px_data.num_pairs)
@@ -56,10 +61,6 @@ def main():
     assert ~np.isnan(F_zh_am).any()
     assert ~np.isnan(W_zh_am).any()
     
-    input_avg_res = config.getboolean('parameters','input_avg_res') # boolean
-    res_path = config.getboolean('parameters','res_path') # boolean
-    gauss_res = config.getboolean('parameters','gauss_res') # boolean
-
     # set average resolution
     if input_avg_res == True:
         k_full = px_data.k_arr
@@ -76,7 +77,7 @@ def main():
                 ksig = k_full*np.mean(sigma_l_z) #np.outer(sigma_l_z, k_full)
                 R_zm = np.exp(-0.5 * (ksig) ** 2)*np.sinc(k_full*0.4/np.pi) #* (np.sin(k_full * 0.4) / (k_full * 0.4)) 
                 R2_zm = R_zm**2
-                R2_m = R2_zm
+                R2_m = R2_zm # keeping it same across z bins for the moment
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
             if gauss_res:
@@ -155,12 +156,12 @@ def main():
     # Measure covariance
     C_z_AMN, Php_z_AM = compute_covariance(F_zh_AM,V_zh_AM)
 
-    # Measure covariance across different theta bins 
+    # Measure covariance across different theta bins and k bins 
     if cov_theta_bool:
 
         C_z_ABM, _ = covariance_across_theta(F_zh_AM,V_zh_AM)
 
-        C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM)
+        C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM) # full covariance
     else:
         C_z_ABM = None
         C_z_ABMN =  None

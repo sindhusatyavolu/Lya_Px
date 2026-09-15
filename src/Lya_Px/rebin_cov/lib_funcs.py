@@ -209,7 +209,7 @@ def rebin_k(F_zh_am,B_M_m, healpix):
     if healpix==True:
         # numerator: (Z,H,a,M)
         print(np.shape(F_zh_am),np.shape(B_M_m))
-        num_k = np.einsum('zham,Mm->zhaM', F_zh_am, B_M_m, optimize=True)
+        num_k = np.einsum('zahm,Mm->zahM', F_zh_am, B_M_m, optimize=True)
         # denom: (M,) -> (1,1,1,M) for broadcasting
         den_k = np.einsum('Mm->M', B_M_m)[None, None, None, :]
     else:
@@ -247,18 +247,6 @@ def rebin_theta(F_zh_aM,B_A_a,healpix=None):
     
     return F_zh_AM
 
-def calculate_estnorm(W, R, L):
-    '''
-    W (np.ndarray): vector length N, average FFT of the weights per healpix 
-    R (np.ndarray): vector length N, resolution in Fourier space
-    L (float): length of the spectra (in physical units, e.g. Angstroms or Mpc)
-    Returns:
-    estnorm (np.ndarray): vector length N, to be multiplied by every P1D mode of the measurement
-    '''
-    R2 = R.real**2 + R.imag**2
-    denom = np.absolute(np.fft.ifft(np.fft.fft(W)* np.fft.fft(R2)))    
-    estnorm = np.absolute(denom/L)
-    return estnorm  
 
 def calculate_V_zh_AM(W_zh_AM,R2_M,L):
     '''
@@ -330,7 +318,7 @@ def average_p1d(F_zh_M,W_zh_m,R2_m,L,B_M_m):
 
     P_z_M = np.divide(num_k, V_z_M, out=np.zeros_like(num_k), where=V_z_M>0)
 
-    print('Shape of average Px is',np.shape(P_z_M))
+    print('Shape of average P1D is',np.shape(P_z_M))
 
 
     return P_z_M, V_z_M
@@ -412,7 +400,6 @@ def cov_theta_k_bins(F_zh_AM,V_zh_AM):
 
 
 
-
 def calculate_window_matrix(W_z_AM, R2_m):
     '''
     W (np.ndarray): average of (w1) conj(w2) where w1 and w2 are FFT of original weights per skewer
@@ -459,7 +446,6 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
 
     # Safe divide, broadcasting over n
     U_z_aMn = np.divide(num, V_z_aM[..., None]*np.einsum('Mm->M', B_M_m)[...,None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
-    #U_z_aMn = np.divide(num, V_z_aM[..., None], out=np.zeros_like(num), where=V_z_aM[..., None] > 0)
     print('Shape of window matrix after rebinning in k is ',np.shape(U_z_aMn))
 
     return U_z_aMn, V_z_aM, V_z_am

@@ -25,29 +25,31 @@ def get_p1d(all_skewers,N_fft):
         # Generate fake input power spectrum
         #input_p=InputPower(P0=0.5,k0=0.01,kF=0.1,f_px=0.7)        
         if add_spike:
-            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7,add_spike=True,k_spike=k_spike,spike_width_npix=spike_width_npix,spike_height=spike_height)
+            input_p = InputPower(P0=input_P0,k0=input_k0,kF=input_kF,f_px=input_f_px,add_spike=True,k_spike=k_spike,spike_width_npix=spike_width_npix,spike_height=spike_height)
         else:
-            input_p = InputPower(P0=0.5,k0=0.1,kF=1.0,f_px=0.7)
+            input_p = InputPower(P0=input_P0,k0=input_k0,kF=input_kF,f_px=input_f_px)
         
         # read the skewer details from the first one, assuming all are equal-sized
         Npix = all_skewers[0].delta_fft_grid.size
         L_wave = all_skewers[0].pw_A * Npix
         # initiate the skewer maker
-        maker=SkewerMaker(N=Npix,L=L_wave,input_power=input_p, seed=None,resolution=0.7656587577591817)#,noise=1.0)   
- 
+        if input_res:
+           maker=SkewerMaker(N=Npix,L=L_wave,input_power=input_p, seed=None,resolution=gauss_res)#,noise=1.0)   
+        else:
+           maker=SkewerMaker(N=Npix,L=L_wave,input_power=input_p, seed=None)#,noise=1.0)   
+
     for skewer in all_skewers:
 
+        weight = skewer.weight_fft_grid
 
+        if set_weights_one:
+            weight = np.ones(skewer.weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
+           
         if gauss_test:
             g_skewer_1,g_skewer_2=maker.make_skewer_pair()
-            if set_weights_one:
-                weight = np.ones(skewer.weight_fft_grid.shape) # uncomment if you want equal weighting for all pixels
-            else:
-               weight = skewer.weight_fft_grid
             delta = g_skewer_1 
         else:
             delta = skewer.delta_fft_grid
-            weight = skewer.weight_fft_grid
        
 
  

@@ -21,47 +21,6 @@ def wave_to_velocity(wave):
 # angular separation to transverse distance conversion
 
 # save outputs
-def save_to_hdf5(filename,z,dz,px,k_arr,theta_min_array,theta_max_array,px_var,px_cov,px_weights,p1d,pw_A):
-    '''
-    Function to write to hdf5 file
-    Parameters:
-    ----------
-    filename (str): name of the output file
-    z (float): redshift bin center
-    dz (float): redshift bin width
-    px (np.ndarray): 2D array of shape (N_FFT, M), where N_FFT is the number of FFT pixels and M is the number of theta bins
-    k_arr (np.ndarray): 1D array of shape (N_FFT), k-space grid in 1/A
-    theta_min_array (np.ndarray): 1D array of shape (M,), minimum angular separations in radians
-    theta_max_array (np.ndarray): 1D array of shape (M,), maximum angular separations in radians
-    px_var (np.ndarray): 2D array of shape (N_FFT, M), variance of Px
-    px_cov (np.ndarray): 2D array of shape (N_FFT, M), covariance matrix of Px
-    px_weights (np.ndarray): 2D array of shape (N_FFT, M), Px of weights
-    p1d (np.ndarray): 1D array of shape (N_FFT,), P1D array
-    pw_A (float): pixel width in Angstroms
-
-    '''
-    with h5py.File(filename, 'w') as f:
-        # shared data
-        f.create_dataset('k_arr', data=k_arr)
-
-        # shared metadata 
-        f.attrs['z'] = z
-        f.attrs['dz'] = dz
-        f.create_dataset('p1d',data=p1d)
-        f.attrs['N_fft'] = len(k_arr)
-        f.attrs['pixel_width_A'] = pw_A
-        
-        # group for each theta bin
-        for i in range(len(px)):
-            g = f.create_group('theta_%d_%d'%(theta_min_array[i]*RAD_TO_ARCMIN,theta_max_array[i]*RAD_TO_ARCMIN))
-            g.create_dataset('px', data=px[i])
-            g.create_dataset('px_var', data=px_var[i])
-            g.create_dataset('px_weights', data=px_weights[i])
-            g.create_dataset('covariance', data=px_cov[i])
-            g.attrs['theta_min'] = theta_min_array[i]
-            g.attrs['theta_max'] = theta_max_array[i]
-
-    return None
 
 def save_results(px_avg, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, output_path, healpixlist, pw_A):
     '''
@@ -108,6 +67,8 @@ def save_results(px_avg, px_weights, p1d_avg, covariance, k_arr, z_alpha, dz, ou
     print('Saved to', filename)
     return None
 
+
+# save outputs per healpix pixel
 
 def save_hp(results,output_path,healpixlist,z_alpha, dz, pw_A):
 

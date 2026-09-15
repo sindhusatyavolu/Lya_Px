@@ -16,7 +16,15 @@ output_path = config.get("parameters", "output_path")
 theta_file = config.get("parameters", "theta_file")
 deltas_path = config.get("parameters", "deltas_path")
 weights_path = config.get("parameters", "weights_path")
+dla_cat = config.get("parameters","dla_catalog")
 mocks = config.get("parameters", "mocks")
+drop_dlas = config.getboolean("parameters","drop_dlas")
+drop_bals = config.getboolean("parameters","drop_bals")
+ai_civ_mask_cutoff = config.getint("parameters","ai_civ_mask_cutoff")
+bal_cat = config.get("parameters","bal_catalog")
+ciii_region = config.getboolean("parameters","ciii_region")
+SB1 = config.getboolean("parameters","SB1")
+SB2 = config.getboolean("parameters","SB2")
 
 redshifts = np.loadtxt(redshifts_file,skiprows=1) # redshifts and redshift bin widths
 redshifts = np.atleast_2d(redshifts)
@@ -30,6 +38,14 @@ healpixlist = np.atleast_1d(np.loadtxt(healpix_file, dtype=int))
 
 # Testing parameters
 gauss_test = config.getboolean("parameters","gauss_test")
+# input parameters to test input power spectrum 
+input_P0 = config.getfloat("parameters","P0")
+input_k0 = config.getfloat("parameters","k0")
+input_kF = config.getfloat("parameters","kF")
+input_f_px = config.getfloat("parameters","f_px")
+gauss_res = config.getboolean("parameters","gauss_res")
+input_res = config.getfloat("parameters","input_res")
+# options for weights
 set_weights_one = config.getboolean("parameters","set_weights_to_one")
 add_spike = config.getboolean("parameters","add_spike")
 k_spike = config.getfloat("parameters","k_spike")
@@ -39,8 +55,7 @@ add_skylines = config.getboolean("parameters","add_skylines")
 skyline_seperation_npix = config.getint("parameters","skyline_seperation_npix")
 skyline_width_npix = config.getint("parameters","skyline_width_npix")
 skyline_loc_npix = config.getint("parameters","skyline_loc_npix")
-
-
+mask_dla = config.getboolean("parameters","mask_dla")
 custom_weights = config.getboolean("parameters","custom_weights")
 match_to_targetids = config.getboolean("parameters","match_to_targetids")
 
