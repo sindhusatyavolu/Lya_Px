@@ -71,11 +71,11 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type)
     else:
         #define bin function
         B_M_m=np.zeros([Nk,N_fft]) # includes negative k values
-        #if bin_func_type == 'top_hat':
+        if bin_func_type == 'top_hat':
             
-            #for i in range(Nk):
-            #    inbin=(abs(k_arr)>=k_edges[i]) & (abs(k_arr)<k_edges[i+1]) # left closed, right open edges
-            #    B_M_m[i,inbin]=1
+            for i in range(Nk):
+                inbin=(abs(k_arr)>=k_edges[i]) & (abs(k_arr)<k_edges[i+1]) # left closed, right open edges
+                B_M_m[i,inbin]=1
             #print(np.sum(B_M_m[i,inbin]))
             
         # Assign each original bin 'm' to a coarse bin 'M'
@@ -89,16 +89,16 @@ def bin_func_k(k_arr,k_fund,k_bins_ratio,max_k,k_max,k_min_factor,bin_func_type)
  
         
         # Bin by indices instead, as comparing floats or k values is giving errors
-        pos = k_arr > 0 # exlcude DC mode
-        k_pos = k_arr[pos]
-        m_mode = np.rint(k_pos / k_fund).astype(int) # these are fourier  m modes 
-        m_min = int(np.rint(k_edges[0] / k_fund)) # these is m index corresponding M edge 0
-        m_max = int(np.rint(k_edges[-1] / k_fund)) # these is m index corresponding M edge final
-        M_idx = ((m_mode - m_min) // k_bins_ratio).astype(int) # counting m modes  within each M mode
-        valid = (m_mode >= m_min) & (m_mode < m_max) # outside these indices B_M_m has to be zero as these bins will be excluded
-        m_idx = np.arange(len(k_pos))
-        if bin_func_type=='top_hat':
-            B_M_m[M_idx[valid], m_idx[valid]] = 1.0
+        #pos = k_arr > 0 # exlcude DC mode
+        #k_pos = k_arr[pos]
+        #m_mode = np.rint(k_pos / k_fund).astype(int) # these are fourier  m modes 
+        #m_min = int(np.rint(k_edges[0] / k_fund)) # these is m index corresponding M edge 0
+        #m_max = int(np.rint(k_edges[-1] / k_fund)) # these is m index corresponding M edge final
+        #M_idx = ((m_mode - m_min) // k_bins_ratio).astype(int) # counting m modes  within each M mode
+        #valid = (m_mode >= m_min) & (m_mode < m_max) # outside these indices B_M_m has to be zero as these bins will be excluded
+        #m_idx = np.arange(len(k_pos))
+        #if bin_func_type=='top_hat':
+        #    B_M_m[M_idx[valid], m_idx[valid]] = 1.0
 
         print(np.sum(B_M_m,axis=1))
 
