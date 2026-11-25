@@ -136,6 +136,7 @@ def get_skewers(healpix, deltas_path):
     if mocks == 'naim_p1d':
         delta_file = deltas_path + 'delta-%d.fits' % healpix
 
+
     if match_to_targetids:
         weights_file = weights_path + 'delta-%d.fits.gz' % healpix
 
@@ -205,8 +206,8 @@ def get_skewers(healpix, deltas_path):
 
             # -------------------------------------------------------
             # IMPORTANT CHANGE:
-            # Define the Ly-alpha forest geometrically using rest-frame
-            # wavelength, not by finite(delta/weight).
+            # Define the Ly-alpha forest using rest-frame
+            # wavelength, not by finite(delta or weight). As some pixels masked for contaminants have NaN weights.
             # -------------------------------------------------------
             lambda_rf = wave_data / (1.0 + z_qso)
 

@@ -66,6 +66,7 @@ def main():
         k_full = px_data.k_arr
         if res_path == True:
             resolution_correction = config.get('paths','resolution_correction') # path to pickle file
+            print('Fetching resolution fits from', resolution_correction)
             with open(resolution_correction, "rb") as f:
                 sigma_l = pickle.load(f) # shape (N_z)\
                 sigma_l = np.array(sigma_l)
@@ -73,10 +74,12 @@ def main():
                 #z_ind = nearest_indx(px_data.z_bin_centers,z_p1d)
                 z_ind = nearest_indx_many(z_p1d,px_data.z_bin_centers)
                 sigma_l = np.asarray(sigma_l)
-                sigma_l_z = sigma_l[z_ind]                 
+                sigma_l_z = sigma_l[z_ind] 
+                print('Mean effective sigma is %0.3f'%np.mean(sigma_l_z)) 
+                print('Computing R^2 = gaussianxsinc with mean effective sigma....')               
                 ksig = k_full*np.mean(sigma_l_z) #np.outer(sigma_l_z, k_full)
                 R_zm = np.exp(-0.5 * (ksig) ** 2)*np.sinc(k_full*0.4/np.pi) #* (np.sin(k_full * 0.4) / (k_full * 0.4)) 
-                R2_zm = R_zm**2
+                R2_zm = R_zm #assuming the fit was done to R^2    #R_zm**2
                 R2_m = R2_zm # keeping it same across z bins for the moment
         else:
             sigma_l_avg = config.getfloat('parameters','sigma_l') # average sigma_l value
