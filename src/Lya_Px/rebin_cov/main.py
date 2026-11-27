@@ -1,7 +1,7 @@
 import numpy as np
 import configparser
 from Lya_Px.rebin_cov.healpix_px import Px_meas
-from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins, nearest_indx_many, average_p1d
+from Lya_Px.rebin_cov.lib_funcs import bin_func_k, bin_func_theta, rebin_k, rebin_theta, average_px, compute_covariance, calculate_window_matrix, bin_window, save_to_hdf5, calculate_V_zh_AM, get_sum_over_healpix, model_resolution, nearest_indx, covariance_across_theta, cov_theta_k_bins, nearest_indx_many, average_p1d, covariance_across_z
 import matplotlib.pyplot as plt 
 import argparse
 import pickle
@@ -165,9 +165,12 @@ def main():
         C_z_ABM, _ = covariance_across_theta(F_zh_AM,V_zh_AM)
 
         C_z_ABMN, _ = cov_theta_k_bins(F_zh_AM,V_zh_AM) # full covariance
+        C_zy_AMN, _ = covariance_across_z(F_zh_AM, V_zh_AM) # cross-z covariance
+
     else:
         C_z_ABM = None
         C_z_ABMN =  None
+        C_zy_AMN = None
 
 
     # Plot covariance
@@ -237,6 +240,6 @@ def main():
 
     # Save to new hdf5 file with metadata and binning information for theory
     outfile= root+ config.get('paths','outfile')
-    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN,P1D_Z_M=P1D_z_M,V_Z_M=V_z_M,nskewers_z=num_skewers_per_z,B_M_m=B_M_m)
+    save_to_hdf5(outfile,P_z_AM,C_z_AMN,U_z_aMn,B_A_a,V_z_aM,k_m,k_M_edges,px_data.theta_bin_min,px_data.theta_bin_max,theta_min_A,theta_max_A,px_data.N_fft,px_data.L_fft,px_data.z_bin_centers,cov_theta=cov_theta_bool,C_Z_AB=C_z_ABM,C_z_ABMN=C_z_ABMN,C_zy_AMN=C_zy_AMN,P1D_Z_M=P1D_z_M,V_Z_M=V_z_M,nskewers_z=num_skewers_per_z,B_M_m=B_M_m)
 
 

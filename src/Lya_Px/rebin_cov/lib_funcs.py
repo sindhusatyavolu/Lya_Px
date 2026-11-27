@@ -397,7 +397,48 @@ def cov_theta_k_bins(F_zh_AM,V_zh_AM):
     print('Shape of covariance matrix across theta and k bins is',np.shape(C_z_ABMN))
     return C_z_ABMN, P_z_AM
 
+def covariance_across_z(F_zh_AM, V_zh_AM):
+    '''
+    Covariance of Px across redshift and k bins, at fixed theta.
+    Returns C_zy_AMN with shape (Nz, Nz, Ntheta, Nk, Nk).
+    '''
 
+    V_z_AM = np.einsum('zAhM->zAM', V_zh_AM)
+
+    P_zh_AM = np.divide(
+        F_zh_AM, V_zh_AM,
+        out=np.zeros_like(F_zh_AM),
+        where=V_zh_AM > 0
+    )
+
+    P_z_AM = np.divide(
+        np.einsum('zAhM,zAhM->zAM', V_zh_AM, P_zh_AM),
+        V_z_AM,
+        out=np.zeros_like(V_z_AM),
+        where=V_z_AM > 0
+    )
+
+    P_diff = P_zh_AM - P_z_AM[:, :, None, :]
+
+    cov_num = np.einsum(
+        'zAhM,yAhN,zAhM,yAhN->zyAMN',
+        V_zh_AM, V_zh_AM, P_diff, P_diff
+    )
+
+    denom = (
+        V_z_AM[:, None, :, :, None]
+        * V_z_AM[None, :, :, None, :]
+    )
+
+    C_zy_AMN = np.divide(
+        cov_num, denom,
+        out=np.zeros_like(cov_num),
+        where=denom > 0
+    )
+
+    print('Shape of cross-z covariance matrix:', C_zy_AMN.shape)
+
+    return C_zy_AMN, P_z_AM
 
 
 def calculate_window_matrix(W_z_AM, R2_m):
@@ -453,7 +494,7 @@ def bin_window(U_z_amn,B_M_m,W_z_am,R2_m,L):
 def get_sum_over_healpix(W_zh_am):
     return np.einsum('zahm->zam',W_zh_am)
 
-def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None,P1D_Z_M=None,V_Z_M=None,nskewers_z=None,B_M_m=None):
+def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,theta_bin_min,theta_bin_max,theta_min_A,theta_max_A,N_fft,L_fft,zbin_centers,cov_theta=False,C_Z_AB=None,C_z_ABMN=None,C_zy_AMN=None,P1D_Z_M=None,V_Z_M=None,nskewers_z=None,B_M_m=None):
 
     with h5py.File(filename, 'w') as f:  
         # Save metadata as attributes
@@ -532,7 +573,19 @@ def save_to_hdf5(filename,P_Z_AM,C_Z_AMN,U_Z_aMn,B_A_a,V_Z_aM,k_m,k_M_edges,thet
                 gU.create_dataset(ds_name, data=U_Z_aMn[i,j,:,:], compression="gzip", compression_opts=4)
                 gV.create_dataset(ds_name, data=V_Z_aM[i,j,:], compression="gzip", compression_opts=4)
 
-        
+        # Cross-redshift covariance at fixed theta, including cross-k terms
+        # Shape: (Nz, Nz, Ntheta, Nk, Nk)
+        if C_zy_AMN is not None:
+            grp = f.create_group('C_zy_AMN')
+            Nz = C_zy_AMN.shape[0]
+            Ntheta = C_zy_AMN.shape[2]
+            for z in range(Nz):
+                for y in range(Nz):
+                    for A in range(Ntheta):
+                        grp.create_dataset(
+                       f'z_{z}/y_{y}/theta_rebin_{A}',
+                       data=C_zy_AMN[z, y, A]
+                       )    
         
 
         #f.create_dataset("P_Z_AM", data=P_z_AM, compression="gzip", compression_opts=4)
